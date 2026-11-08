@@ -739,7 +739,7 @@ class TorrentRepository extends BaseRepository
         $idArr = Arr::wrap($id);
         return NexusNexusDB::transaction(function () use ($idArr, $tagIdArr, $remove) {
             $sql = "insert into torrent_tags (torrent_id, tag_id, created_at, updated_at) values ";
-            $time = now()->toDateTimeString();
+            $time = \App\Support\Carbon::now()->toDateTimeString();
             $values = [];
             foreach ($idArr as $torrentId) {
                 foreach ($tagIdArr as $tagId) {

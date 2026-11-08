@@ -255,9 +255,28 @@ class NexusDB
     }
 
 
-    public static function remember($key, $ttl, \Closure $callback)
+    /**
+     * 取缓存实例（安装、CLI 等场景 $Cache 可能尚未初始化）
+     */
+    protected static function cache(): ?object
     {
         global $Cache;
+        if (!is_object($Cache ?? null)) {
+            if (class_exists('class_cache_file')) {
+                $Cache = new \class_cache_file();
+            } else {
+                return null;
+            }
+        }
+        return $Cache;
+    }
+
+    public static function remember($key, $ttl, \Closure $callback)
+    {
+        $Cache = self::cache();
+        if (!$Cache) {
+            return $callback();
+        }
         $result = $Cache->get_value($key);
         if ($result === false) {
             $result = $callback();
@@ -271,20 +290,25 @@ class NexusDB
 
     public static function cache_put($key, $value, $ttl = 3600)
     {
-        global $Cache;
+        $Cache = self::cache();
+        if (!$Cache) {
+            return null;
+        }
         return $Cache->cache_value($key, $value, $ttl);
     }
 
     public static function cache_get($key)
     {
-        global $Cache;
-        return $Cache->get_value($key);
+        $Cache = self::cache();
+        return $Cache ? $Cache->get_value($key) : false;
     }
 
     public static function cache_del($key)
     {
-        global $Cache;
-        $Cache->delete_value($key, true);
+        $Cache = self::cache();
+        if ($Cache) {
+            $Cache->delete_value($key, true);
+        }
     }
 
     public static function cache_del_by_pattern($pattern)

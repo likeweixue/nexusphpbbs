@@ -2679,14 +2679,14 @@ $css_uri = get_css_uri();
 $cssupdatedate=($cssupdatedate ? "?".htmlspecialchars($cssupdatedate) : "");
 ?>
 <title><?php echo $title?></title>
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="<?php echo nexus_asset('favicon.ico')?>" type="image/x-icon" />
 <link rel="search" type="application/opensearchdescription+xml" title="<?php echo $SITENAME?> Torrents" href="opensearch.php" />
-<link rel="stylesheet" href="<?php echo get_font_css_uri().$cssupdatedate?>" type="text/css" />
-<link rel="stylesheet" href="styles/sprites.css<?php echo $cssupdatedate?>" type="text/css" />
-<link rel="stylesheet" href="<?php echo get_forum_pic_folder()."/forumsprites.css".$cssupdatedate?>" type="text/css" />
-<link rel="stylesheet" href="<?php echo $css_uri."theme.css".$cssupdatedate?>" type="text/css" />
-<link rel="stylesheet" href="<?php echo $css_uri."DomTT.css".$cssupdatedate?>" type="text/css" />
-<link rel="stylesheet" href="styles/nexus.css<?php echo $cssupdatedate?>" type="text/css" />
+<link rel="stylesheet" href="<?php echo nexus_asset(get_font_css_uri()).$cssupdatedate?>" type="text/css" />
+<link rel="stylesheet" href="<?php echo nexus_asset('styles/sprites.css').$cssupdatedate?>" type="text/css" />
+<link rel="stylesheet" href="<?php echo nexus_asset(get_forum_pic_folder().'/forumsprites.css').$cssupdatedate?>" type="text/css" />
+<link rel="stylesheet" href="<?php echo nexus_asset($css_uri.'theme.css').$cssupdatedate?>" type="text/css" />
+<link rel="stylesheet" href="<?php echo nexus_asset($css_uri.'DomTT.css').$cssupdatedate?>" type="text/css" />
+<link rel="stylesheet" href="<?php echo nexus_asset('styles/nexus.css').$cssupdatedate?>" type="text/css" />
 <?php
 if ($CURUSER){
 //	$caticonrow = get_category_icon_row($CURUSER['caticon']);
@@ -2697,26 +2697,26 @@ if ($CURUSER){
         foreach ($icons as $icon) {
 
 ?>
-<link rel="stylesheet" href="<?php echo htmlspecialchars(trim($icon['cssfile'] ?? '', '/')).$cssupdatedate?>" type="text/css" />
+<link rel="stylesheet" href="<?php echo nexus_asset(trim($icon['cssfile'] ?? '', '/')).$cssupdatedate?>" type="text/css" />
 <?php
 	}}
 }
 ?>
 <link rel="alternate" type="application/rss+xml" title="Latest Torrents" href="torrentrss.php" />
-<script type="text/javascript" src="js/curtain_imageresizer.js<?php echo $cssupdatedate?>"></script>
-<script type="text/javascript" src="js/ajaxbasic.js<?php echo $cssupdatedate?>"></script>
-<script type="text/javascript" src="js/common.js<?php echo $cssupdatedate?>"></script>
-<script type="text/javascript" src="js/domLib.js<?php echo $cssupdatedate?>"></script>
-<script type="text/javascript" src="js/domTT.js<?php echo $cssupdatedate?>"></script>
-<script type="text/javascript" src="js/domTT_drag.js<?php echo $cssupdatedate?>"></script>
-<script type="text/javascript" src="js/fadomatic.js<?php echo $cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('js/curtain_imageresizer.js').$cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('js/ajaxbasic.js').$cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('js/common.js').$cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('js/domLib.js').$cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('js/domTT.js').$cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('js/domTT_drag.js').$cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('js/fadomatic.js').$cssupdatedate?>"></script>
 <?php
 do_action('nexus_header');
 foreach (\Nexus\Nexus::getAppendHeaders() as $value) {
     print($value);
 }
 ?>
-<script type="text/javascript" src="js/jquery-1.12.4.min.js<?php echo $cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('js/jquery-1.12.4.min.js').$cssupdatedate?>"></script>
 <script type="text/javascript">
     jQuery.noConflict();
     window.nexusLayerOptions = {
@@ -2724,7 +2724,7 @@ foreach (\Nexus\Nexus::getAppendHeaders() as $value) {
         alert: {btnAlign: 'c', title: 'Info', btn: ['OK', 'Cancel']}
     }
 </script>
-<script type="text/javascript" src="vendor/layer-v3.5.1/layer/layer.js<?php echo $cssupdatedate?>"></script>
+<script type="text/javascript" src="<?php echo nexus_asset('vendor/layer-v3.5.1/layer/layer.js').$cssupdatedate?>"></script>
 </head>
 <body>
 <table class="head" cellspacing="0" cellpadding="0" align="center" style="width: <?php echo isset($GLOBALS['CURUSER']) ? CONTENT_WIDTH + 28.66 : CONTENT_WIDTH ?>px">
@@ -2820,7 +2820,7 @@ else {
 		$Cache->cache_value('user_'.$CURUSER["id"].'_unread_message_count', $unread, 60);
 	}
 
-	$inboxpic = "<img class=\"".($unread ? "inboxnew" : "inbox")."\" src=\"pic/trans.gif\" alt=\"inbox\" title=\"".($unread ? $lang_functions['title_inbox_new_messages'] : $lang_functions['title_inbox_no_new_messages'])."\" />";
+	$inboxpic = "<img class=\"".($unread ? "inboxnew" : "inbox")."\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"inbox\" title=\"".($unread ? $lang_functions['title_inbox_new_messages'] : $lang_functions['title_inbox_no_new_messages'])."\" />";
 //    $attend_desk = new Attendance($CURUSER['id']);
 //    $attendance = $attend_desk->check();
     $attendanceRep = new \App\Repositories\AttendanceRepository();
@@ -2872,11 +2872,11 @@ if (user_can('staffmem')) {
         $Cache->cache_value('staff_report_count', $totalreports, 900);
     }
     print(
-        "<a href=\"reports.php\"><img class=\"reportbox\" alt=\"reportbox\" title=\"".$lang_functions['title_reportbox']."\" src=\"pic/trans.gif\" />  </a>".$totalreports
+        "<a href=\"reports.php\"><img class=\"reportbox\" alt=\"reportbox\" title=\"".$lang_functions['title_reportbox']."\" src=\"" . nexus_asset('pic/trans.gif') . "\" />  </a>".$totalreports
     );
 }
-print(" <a href=\"friends.php\"><img class=\"buddylist\" alt=\"Buddylist\" title=\"".$lang_functions['title_buddylist']."\" src=\"pic/trans.gif\" /></a>");
-print(" <a href=\"getrss.php\"><img class=\"rss\" alt=\"RSS\" title=\"".$lang_functions['title_get_rss']."\" src=\"pic/trans.gif\" /></a>");
+print(" <a href=\"friends.php\"><img class=\"buddylist\" alt=\"Buddylist\" title=\"".$lang_functions['title_buddylist']."\" src=\"" . nexus_asset('pic/trans.gif') . "\" /></a>");
+print(" <a href=\"getrss.php\"><img class=\"rss\" alt=\"RSS\" title=\"".$lang_functions['title_get_rss']."\" src=\"" . nexus_asset('pic/trans.gif') . "\" /></a>");
 print '<br/>';
 //echo $lang_functions['text_the_time_is_now'].$datum['hours'].":".$datum['minutes'] . '<br />';
 //	$cacheKey = "staff_message_count_" . $CURUSER['id'];
@@ -2888,11 +2888,11 @@ print '<br/>';
         \App\Repositories\MessageRepository::updateStaffMessageCountCache($CURUSER['id'], 'total', $totalsm);
     }
     if ($totalsm > 0) {
-        print ("  <a href=\"staffbox.php\"><img class=\"staffbox\" alt=\"staffbox\" title=\"".$lang_functions['title_staffbox']."\" src=\"pic/trans.gif\" />  </a>".$totalsm."  ");
+        print ("  <a href=\"staffbox.php\"><img class=\"staffbox\" alt=\"staffbox\" title=\"".$lang_functions['title_staffbox']."\" src=\"" . nexus_asset('pic/trans.gif') . "\" />  </a>".$totalsm."  ");
     }
 
 	print("<a href=\"messages.php\">".$inboxpic."</a> ".($messages ? $messages." (".$unread.$lang_functions['text_message_new'].")" : "0"));
-	print("  <a href=\"messages.php?action=viewmailbox&amp;box=-1\"><img class=\"sentbox\" alt=\"sentbox\" title=\"".$lang_functions['title_sentbox']."\" src=\"pic/trans.gif\" /></a> ".($outmessages ? $outmessages : "0"));
+	print("  <a href=\"messages.php?action=viewmailbox&amp;box=-1\"><img class=\"sentbox\" alt=\"sentbox\" title=\"".$lang_functions['title_sentbox']."\" src=\"" . nexus_asset('pic/trans.gif') . "\" /></a> ".($outmessages ? $outmessages : "0"));
 
 ?>
 
@@ -3157,9 +3157,9 @@ function stdfoot() {
 	    print($value);
     }
 	$js = <<<JS
-<script type="application/javascript" src="js/nexus.js"></script>
-<script type="application/javascript" src="js/medium-zoom.min.js"></script>
-<script type="application/javascript" src="vendor/jquery-goup-1.1.3/jquery.goup.min.js"></script>
+<script type="application/javascript" src="<?php echo nexus_asset('js/nexus.js').$cssupdatedate?>"></script>
+<script type="application/javascript" src="<?php echo nexus_asset('js/medium-zoom.min.js').$cssupdatedate?>"></script>
+<script type="application/javascript" src="<?php echo nexus_asset('vendor/jquery-goup-1.1.3/jquery.goup.min.js').$cssupdatedate?>"></script>
 <script>
 jQuery(document).ready(function(){
     jQuery.goup()
@@ -3462,7 +3462,7 @@ function commenttable($rows, $type, $parent_id, $review = false)
 		print("<div style=\"margin-top: 8pt; margin-bottom: 8pt;\"><table id=\"cid".$row["id"]."\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td class=\"embedded\" width=\"99%\">#" . $row["id"] . "&nbsp;&nbsp;<font color=\"gray\">".$lang_functions['text_by']."</font>");
 		print(get_username($row["user"],false,true,true,false,false,true));
 		print("&nbsp;&nbsp;<font color=\"gray\">".$lang_functions['text_at']."</font>".gettime($row["added"]).
-		($row["editedby"] && user_can('commanage') ? " - [<a href=\"comment.php?action=vieworiginal&amp;cid=".$row['id']."&amp;type=".$type."\">".$lang_functions['text_view_original']."</a>]" : "") . "</td><td class=\"embedded nowrap\" width=\"1%\"><a href=\"#top\"><img class=\"top\" src=\"pic/trans.gif\" alt=\"Top\" title=\"Top\" /></a>&nbsp;&nbsp;</td></tr></table></div>");
+		($row["editedby"] && user_can('commanage') ? " - [<a href=\"comment.php?action=vieworiginal&amp;cid=".$row['id']."&amp;type=".$type."\">".$lang_functions['text_view_original']."</a>]" : "") . "</td><td class=\"embedded nowrap\" width=\"1%\"><a href=\"#top\"><img class=\"top\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Top\" title=\"Top\" /></a>&nbsp;&nbsp;</td></tr></table></div>");
 		$avatar = ($CURUSER["avatars"] == "yes" ? htmlspecialchars(trim($userRow["avatar"])) : "");
 		if (!$avatar)
 			$avatar = "pic/default_avatar.png";
@@ -3480,9 +3480,9 @@ function commenttable($rows, $type, $parent_id, $review = false)
 		print("<td class=\"rowfollow\" width=\"150\" valign=\"top\" style=\"padding: 0px;\">".return_avatar_image($avatar)."</td>\n");
 		print("<td class=\"rowfollow word-break-all\" valign=\"top\"><br />".$text.$text_editby."</td>\n");
 		print("</tr>\n");
-		$actionbar = "<a href=\"comment.php?action=add&amp;sub=quote&amp;cid=".$row['id']."&amp;pid=".$parent_id."&amp;type=".$type."\"><img class=\"f_quote\" src=\"pic/trans.gif\" alt=\"Quote\" title=\"".$lang_functions['title_reply_with_quote']."\" /></a>".
-		"<a href=\"comment.php?action=add&amp;pid=".$parent_id."&amp;type=".$type."\"><img class=\"f_reply\" src=\"pic/trans.gif\" alt=\"Add Reply\" title=\"".$lang_functions['title_add_reply']."\" /></a>".(user_can('commanage') ? "<a href=\"comment.php?action=delete&amp;cid=".$row['id']."&amp;type=".$type."\"><img class=\"f_delete\" src=\"pic/trans.gif\" alt=\"Delete\" title=\"".$lang_functions['title_delete']."\" /></a>" : "").($row["user"] == $CURUSER["id"] || get_user_class() >= $commanage_class ? "<a href=\"comment.php?action=edit&amp;cid=".$row['id']."&amp;type=".$type."\"><img class=\"f_edit\" src=\"pic/trans.gif\" alt=\"Edit\" title=\"".$lang_functions['title_edit']."\" />"."</a>" : "");
-		print("<tr><td class=\"toolbox\"> ".("'".$userRow['last_access']."'"> $dt ? "<img class=\"f_online\" src=\"pic/trans.gif\" alt=\"Online\" title=\"".$lang_functions['title_online']."\" />":"<img class=\"f_offline\" src=\"pic/trans.gif\" alt=\"Offline\" title=\"".$lang_functions['title_offline']."\" />" )."<a href=\"sendmessage.php?receiver=".htmlspecialchars(trim($row["user"]))."\"><img class=\"f_pm\" src=\"pic/trans.gif\" alt=\"PM\" title=\"".$lang_functions['title_send_message_to'].htmlspecialchars($userRow["username"])."\" /></a><a href=\"report.php?commentid=".htmlspecialchars(trim($row["id"]))."\"><img class=\"f_report\" src=\"pic/trans.gif\" alt=\"Report\" title=\"".$lang_functions['title_report_this_comment']."\" /></a></td><td class=\"toolbox\" align=\"right\">".$actionbar."</td>");
+		$actionbar = "<a href=\"comment.php?action=add&amp;sub=quote&amp;cid=".$row['id']."&amp;pid=".$parent_id."&amp;type=".$type."\"><img class=\"f_quote\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Quote\" title=\"".$lang_functions['title_reply_with_quote']."\" /></a>".
+		"<a href=\"comment.php?action=add&amp;pid=".$parent_id."&amp;type=".$type."\"><img class=\"f_reply\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Add Reply\" title=\"".$lang_functions['title_add_reply']."\" /></a>".(user_can('commanage') ? "<a href=\"comment.php?action=delete&amp;cid=".$row['id']."&amp;type=".$type."\"><img class=\"f_delete\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Delete\" title=\"".$lang_functions['title_delete']."\" /></a>" : "").($row["user"] == $CURUSER["id"] || get_user_class() >= $commanage_class ? "<a href=\"comment.php?action=edit&amp;cid=".$row['id']."&amp;type=".$type."\"><img class=\"f_edit\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Edit\" title=\"".$lang_functions['title_edit']."\" />"."</a>" : "");
+		print("<tr><td class=\"toolbox\"> ".("'".$userRow['last_access']."'"> $dt ? "<img class=\"f_online\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Online\" title=\"".$lang_functions['title_online']."\" />":"<img class=\"f_offline\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Offline\" title=\"".$lang_functions['title_offline']."\" />" )."<a href=\"sendmessage.php?receiver=".htmlspecialchars(trim($row["user"]))."\"><img class=\"f_pm\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"PM\" title=\"".$lang_functions['title_send_message_to'].htmlspecialchars($userRow["username"])."\" /></a><a href=\"report.php?commentid=".htmlspecialchars(trim($row["id"]))."\"><img class=\"f_report\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Report\" title=\"".$lang_functions['title_report_this_comment']."\" /></a></td><td class=\"toolbox\" align=\"right\">".$actionbar."</td>");
 
 		print("</tr></table>\n");
 		$count++;
@@ -3599,9 +3599,9 @@ function get_torrent_bookmark_state($userid, $torrentid, $text = false)
 	$ret = array();
 	$ret = return_torrent_bookmark_array($userid);
 	if (!count($ret) || !in_array($torrentid, $ret, false)) // already bookmarked
-		$act = ($text == true ?  $lang_functions['title_bookmark_torrent']  : "<img class=\"delbookmark\" src=\"pic/trans.gif\" alt=\"Unbookmarked\" title=\"".$lang_functions['title_bookmark_torrent']."\" />");
+		$act = ($text == true ?  $lang_functions['title_bookmark_torrent']  : "<img class=\"delbookmark\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Unbookmarked\" title=\"".$lang_functions['title_bookmark_torrent']."\" />");
 	else
-		$act = ($text == true ? $lang_functions['title_delbookmark_torrent'] : "<img class=\"bookmark\" src=\"pic/trans.gif\" alt=\"Bookmarked\" title=\"".$lang_functions['title_delbookmark_torrent']."\" />");
+		$act = ($text == true ? $lang_functions['title_delbookmark_torrent'] : "<img class=\"bookmark\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Bookmarked\" title=\"".$lang_functions['title_delbookmark_torrent']."\" />");
 	return $act;
 }
 
@@ -3726,14 +3726,14 @@ if ($wait)
 	print("<td class=\"colhead\">".$lang_functions['col_wait']."</td>\n");
 }
 if ($CURUSER['showcomnum'] != 'no') { ?>
-<td class="colhead"><a href="?<?php echo $oldlink?>sort=3&amp;type=<?php echo $link[3]?>"><img class="comments" src="pic/trans.gif" alt="comments" title="<?php echo $lang_functions['title_number_of_comments'] ?>" /></a></td>
+<td class="colhead"><a href="?<?php echo $oldlink?>sort=3&amp;type=<?php echo $link[3]?>"><img class="comments" src="<?php echo nexus_asset('pic/trans.gif')?>" alt="comments" title="<?php echo $lang_functions['title_number_of_comments'] ?>" /></a></td>
 <?php } ?>
 
-<td class="colhead"><a href="?<?php echo $oldlink?>sort=4&amp;type=<?php echo $link[4]?>"><img class="time" src="pic/trans.gif" alt="time" title="<?php echo ($CURUSER['timetype'] != 'timealive' ? $lang_functions['title_time_added'] : $lang_functions['title_time_alive'])?>" /></a></td>
-<td class="colhead"><a href="?<?php echo $oldlink?>sort=5&amp;type=<?php echo $link[5]?>"><img class="size" src="pic/trans.gif" alt="size" title="<?php echo $lang_functions['title_size'] ?>" /></a></td>
-<td class="colhead"><a href="?<?php echo $oldlink?>sort=7&amp;type=<?php echo $link[7]?>"><img class="seeders" src="pic/trans.gif" alt="seeders" title="<?php echo $lang_functions['title_number_of_seeders'] ?>" /></a></td>
-<td class="colhead"><a href="?<?php echo $oldlink?>sort=8&amp;type=<?php echo $link[8]?>"><img class="leechers" src="pic/trans.gif" alt="leechers" title="<?php echo $lang_functions['title_number_of_leechers'] ?>" /></a></td>
-<td class="colhead"><a href="?<?php echo $oldlink?>sort=6&amp;type=<?php echo $link[6]?>"><img class="snatched" src="pic/trans.gif" alt="snatched" title="<?php echo $lang_functions['title_number_of_snatched']?>" /></a></td>
+<td class="colhead"><a href="?<?php echo $oldlink?>sort=4&amp;type=<?php echo $link[4]?>"><img class="time" src="<?php echo nexus_asset('pic/trans.gif')?>" alt="time" title="<?php echo ($CURUSER['timetype'] != 'timealive' ? $lang_functions['title_time_added'] : $lang_functions['title_time_alive'])?>" /></a></td>
+<td class="colhead"><a href="?<?php echo $oldlink?>sort=5&amp;type=<?php echo $link[5]?>"><img class="size" src="<?php echo nexus_asset('pic/trans.gif')?>" alt="size" title="<?php echo $lang_functions['title_size'] ?>" /></a></td>
+<td class="colhead"><a href="?<?php echo $oldlink?>sort=7&amp;type=<?php echo $link[7]?>"><img class="seeders" src="<?php echo nexus_asset('pic/trans.gif')?>" alt="seeders" title="<?php echo $lang_functions['title_number_of_seeders'] ?>" /></a></td>
+<td class="colhead"><a href="?<?php echo $oldlink?>sort=8&amp;type=<?php echo $link[8]?>"><img class="leechers" src="<?php echo nexus_asset('pic/trans.gif')?>" alt="leechers" title="<?php echo $lang_functions['title_number_of_leechers'] ?>" /></a></td>
+<td class="colhead"><a href="?<?php echo $oldlink?>sort=6&amp;type=<?php echo $link[6]?>"><img class="snatched" src="<?php echo nexus_asset('pic/trans.gif')?>" alt="snatched" title="<?php echo $lang_functions['title_number_of_snatched']?>" /></a></td>
 <td class="colhead"><a href="?<?php echo $oldlink?>sort=9&amp;type=<?php echo $link[9]?>"><?php echo $lang_functions['col_uploader']?></a></td>
 <?php
 if (user_can('torrentmanage')) { ?>
@@ -3823,7 +3823,7 @@ foreach ($rows as $row)
 		$dispname=mb_substr($dispname, 0, $max_length_of_torrent_name-2,"UTF-8") . "..";
 	if ($CURUSER['appendsticky'] == 'yes') {
         $posStates = \App\Models\Torrent::listPosStates();
-        $stickyicon = str_repeat("<img class=\"sticky\" src=\"pic/trans.gif\" alt=\"Sticky\" title=\"".$posStates[$row['pos_state']]['text']."\" />&nbsp;", $posStates[$row['pos_state']]['icon_counts'] ?? 0);
+        $stickyicon = str_repeat("<img class=\"sticky\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Sticky\" title=\"".$posStates[$row['pos_state']]['text']."\" />&nbsp;", $posStates[$row['pos_state']]['icon_counts'] ?? 0);
     } else {
         $stickyicon = "";
     }
@@ -3844,7 +3844,7 @@ foreach ($rows as $row)
                 $coverSrc = $imdb->getMovieCover($imdb_id);
             }
         }
-        $tdCover = sprintf('<td class="embedded" style="text-align: center;width: 46px;height: 46px"><img src="pic/misc/spinner.svg" data-src="%s" class="nexus-lazy-load" style="max-height: 46px;max-width: 46px" /></td>', $coverSrc);
+        $tdCover = sprintf('<td class="embedded" style="text-align: center;width: 46px;height: 46px"><img src="' . nexus_asset('pic/misc/spinner.svg') . '" data-src="%s" class="nexus-lazy-load" style="max-height: 46px;max-width: 46px" /></td>', $coverSrc);
     }
 
 	print("<td class=\"rowfollow\" width=\"100%\" align=\"left\" style='padding: 0px'><table class=\"torrentname\" width=\"100%\"><tr" . $sphighlight . ">$tdCover<td class=\"embedded\" style='padding-left: 5px'>".$stickyicon."<a $short_torrent_name_alt $mouseovertorrent href=\"details.php?id=".$id."&amp;hit=1\"><b>".htmlspecialchars($dispname)."</b></a>");
@@ -3907,7 +3907,7 @@ foreach ($rows as $row)
     }
 		$act = "";
 		if ($CURUSER["dlicon"] != 'no' && $CURUSER["downloadpos"] != "no")
-		$act .= "<a href=\"download.php?id=".$id."\"><img class=\"download\" src=\"pic/trans.gif\" style='padding-bottom: 2px;' alt=\"download\" title=\"".$lang_functions['title_download_torrent']."\" /></a>" ;
+		$act .= "<a href=\"download.php?id=".$id."\"><img class=\"download\" src=\"" . nexus_asset('pic/trans.gif') . "\" style='padding-bottom: 2px;' alt=\"download\" title=\"".$lang_functions['title_download_torrent']."\" /></a>" ;
 		if ($CURUSER["bmicon"] == 'yes'){
 			$bookmark = " href=\"javascript: bookmark(".$id.",".$counter.");\"";
 			$act .= ($act ? "<br />" : "")."<a id=\"bookmark".$counter."\" ".$bookmark." >".get_torrent_bookmark_state($CURUSER['id'], $id)."</a>";
@@ -4015,9 +4015,9 @@ foreach ($rows as $row)
 	{
         $actions = [];
         if (user_can('torrent-delete')) {
-            $actions[] = "<a href=\"".htmlspecialchars("fastdelete.php?id=".$row['id'])."\"><img class=\"staff_delete\" src=\"pic/trans.gif\" alt=\"D\" title=\"".$lang_functions['text_delete']."\" /></a>";
+            $actions[] = "<a href=\"".htmlspecialchars("fastdelete.php?id=".$row['id'])."\"><img class=\"staff_delete\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"D\" title=\"".$lang_functions['text_delete']."\" /></a>";
         }
-        $actions[] = "<a href=\"edit.php?returnto=" . rawurlencode($_SERVER["REQUEST_URI"]) . "&amp;id=" . $row["id"] . "\"><img class=\"staff_edit\" src=\"pic/trans.gif\" alt=\"E\" title=\"".$lang_functions['text_edit']."\" /></a>";
+        $actions[] = "<a href=\"edit.php?returnto=" . rawurlencode($_SERVER["REQUEST_URI"]) . "&amp;id=" . $row["id"] . "\"><img class=\"staff_edit\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"E\" title=\"".$lang_functions['text_edit']."\" /></a>";
 		echo sprintf("<td class=\"rowfollow\">%s</td>", implode("<br />", $actions));
 	}
 	print("</tr>\n");
@@ -4121,12 +4121,12 @@ function get_username($id, $big = false, $link = true, $bold = true, $target = f
 function get_percent_completed_image($p) {
 	$maxpx = "45"; // Maximum amount of pixels for the progress bar
 
-	if ($p == 0) $progress = "<img class=\"progbarrest\" src=\"pic/trans.gif\" style=\"width: " . ($maxpx) . "px;\" alt=\"\" />";
-	if ($p == 100) $progress = "<img class=\"progbargreen\" src=\"pic/trans.gif\" style=\"width: " . ($maxpx) . "px;\" alt=\"\" />";
-	if ($p >= 1 && $p <= 30) $progress = "<img class=\"progbarred\" src=\"pic/trans.gif\" style=\"width: " . ($p*($maxpx/100)) . "px;\" alt=\"\" /><img class=\"progbarrest\" src=\"pic/trans.gif\" style=\"width: " . ((100-$p)*($maxpx/100)) . "px;\" alt=\"\" />";
-	if ($p >= 31 && $p <= 65) $progress = "<img class=\"progbaryellow\" src=\"pic/trans.gif\" style=\"width: " . ($p*($maxpx/100)) . "px;\" alt=\"\" /><img class=\"progbarrest\" src=\"pic/trans.gif\" style=\"width: " . ((100-$p)*($maxpx/100)) . "px;\" alt=\"\" />";
-	if ($p >= 66 && $p <= 99) $progress = "<img class=\"progbargreen\" src=\"pic/trans.gif\" style=\"width: " . ($p*($maxpx/100)) . "px;\" alt=\"\" /><img class=\"progbarrest\" src=\"pic/trans.gif\" style=\"width: " . ((100-$p)*($maxpx/100)) . "px;\" alt=\"\" />";
-	return "<img class=\"bar_left\" src=\"pic/trans.gif\" alt=\"\" />" . $progress ."<img class=\"bar_right\" src=\"pic/trans.gif\" alt=\"\" />";
+	if ($p == 0) $progress = "<img class=\"progbarrest\" src=\"" . nexus_asset('pic/trans.gif') . "\" style=\"width: " . ($maxpx) . "px;\" alt=\"\" />";
+	if ($p == 100) $progress = "<img class=\"progbargreen\" src=\"" . nexus_asset('pic/trans.gif') . "\" style=\"width: " . ($maxpx) . "px;\" alt=\"\" />";
+	if ($p >= 1 && $p <= 30) $progress = "<img class=\"progbarred\" src=\"" . nexus_asset('pic/trans.gif') . "\" style=\"width: " . ($p*($maxpx/100)) . "px;\" alt=\"\" /><img class=\"progbarrest\" src=\"" . nexus_asset('pic/trans.gif') . "\" style=\"width: " . ((100-$p)*($maxpx/100)) . "px;\" alt=\"\" />";
+	if ($p >= 31 && $p <= 65) $progress = "<img class=\"progbaryellow\" src=\"" . nexus_asset('pic/trans.gif') . "\" style=\"width: " . ($p*($maxpx/100)) . "px;\" alt=\"\" /><img class=\"progbarrest\" src=\"" . nexus_asset('pic/trans.gif') . "\" style=\"width: " . ((100-$p)*($maxpx/100)) . "px;\" alt=\"\" />";
+	if ($p >= 66 && $p <= 99) $progress = "<img class=\"progbargreen\" src=\"" . nexus_asset('pic/trans.gif') . "\" style=\"width: " . ($p*($maxpx/100)) . "px;\" alt=\"\" /><img class=\"progbarrest\" src=\"" . nexus_asset('pic/trans.gif') . "\" style=\"width: " . ((100-$p)*($maxpx/100)) . "px;\" alt=\"\" />";
+	return "<img class=\"bar_left\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"\" />" . $progress ."<img class=\"bar_right\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"\" />";
 }
 
 function get_ratio_img($ratio)
@@ -4452,7 +4452,7 @@ $smallth
 </td>" : "")
 ."<td class=\"clear\" valign=\"top\" align=\"left\">
 <table style=\"background-color: transparent;\" border=\"0\" cellspacing=\"0\" cellpadding=\"3\" width=\"350\">
-<tr><td class=\"clear\" colspan=\"2\"><img class=\"imdb\" src=\"pic/trans.gif\" alt=\"imdb\" /> <font class=\"big\"><b>".$title."</b></font> (".$year.") </td></tr>
+<tr><td class=\"clear\" colspan=\"2\"><img class=\"imdb\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"imdb\" /> <font class=\"big\"><b>".$title."</b></font> (".$year.") </td></tr>
 <tr><td class=\"clear\"><strong><font color=\"DarkRed\">".$lang_functions['text_imdb'].": </font></strong>".$imdbrating."</td>
 ".( $runtime ? "<td class=\"clear\"><strong><font color=\"DarkRed\">".$lang_functions['text_runtime'].": </font></strong>".$runtime.$lang_functions['text_min']."</td>" : "<td class=\"clear\"></td>")."</tr>
 <tr><td class=\"clear\"><strong><font color=\"DarkRed\">".$lang_functions['text_country'].": </font></strong>".$countries."</td>
@@ -4825,27 +4825,27 @@ function get_torrent_promotion_append($promotion = 1,$forcemode = "",$showtimele
         $log .= ", user appendpromotion = icon";
 		if(($promotion==2 && $globalSpState == 1) || $globalSpState == 2) {
             $log .= ", promotion or global_sp_state = 2";
-            $sp_torrent = " <img class=\"pro_free\" src=\"pic/trans.gif\" alt=\"Free\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_free']."\"")." />";
+            $sp_torrent = " <img class=\"pro_free\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"Free\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_free']."\"")." />";
         }
 		elseif(($promotion==3 && $globalSpState == 1) || $globalSpState == 3) {
             $log .= ", promotion or global_sp_state = 3";
-            $sp_torrent = " <img class=\"pro_2up\" src=\"pic/trans.gif\" alt=\"2X\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_two_times_up']."\"")." />";
+            $sp_torrent = " <img class=\"pro_2up\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"2X\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_two_times_up']."\"")." />";
         }
 		elseif(($promotion==4 && $globalSpState == 1) || $globalSpState == 4) {
             $log .= ", promotion or global_sp_state = 4";
-            $sp_torrent = " <img class=\"pro_free2up\" src=\"pic/trans.gif\" alt=\"2X Free\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_free_two_times_up']."\"")." />";
+            $sp_torrent = " <img class=\"pro_free2up\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"2X Free\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_free_two_times_up']."\"")." />";
         }
 		elseif(($promotion==5 && $globalSpState == 1) || $globalSpState == 5) {
             $log .= ", promotion or global_sp_state = 5";
-            $sp_torrent = " <img class=\"pro_50pctdown\" src=\"pic/trans.gif\" alt=\"50%\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_half_down']."\"")." />";
+            $sp_torrent = " <img class=\"pro_50pctdown\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"50%\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_half_down']."\"")." />";
         }
 		elseif(($promotion==6 && $globalSpState == 1) || $globalSpState == 6) {
             $log .= ", promotion or global_sp_state = 6";
-            $sp_torrent = " <img class=\"pro_50pctdown2up\" src=\"pic/trans.gif\" alt=\"2X 50%\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_half_down_two_up']."\"")." />";
+            $sp_torrent = " <img class=\"pro_50pctdown2up\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"2X 50%\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_half_down_two_up']."\"")." />";
         }
 		elseif(($promotion==7 && $globalSpState == 1) || $globalSpState == 7) {
             $log .= ", promotion or global_sp_state = 7";
-            $sp_torrent = " <img class=\"pro_30pctdown\" src=\"pic/trans.gif\" alt=\"30%\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_thirty_percent_down']."\"")." />";
+            $sp_torrent = " <img class=\"pro_30pctdown\" src=\"" . nexus_asset('pic/trans.gif') . "\" alt=\"30%\" ".($onmouseover ? $onmouseover : "title=\"".$lang_functions['text_thirty_percent_down']."\"")." />";
         }
 	}
 	do_log("$log, sp_torrent: $sp_torrent");
@@ -5028,7 +5028,7 @@ function get_hr_img(array $torrent, $searchBoxId)
     $mode = \App\Models\HitAndRun::getConfig('mode', $searchBoxId);
     $result = '';
     if ($mode == \App\Models\HitAndRun::MODE_GLOBAL || ($mode == \App\Models\HitAndRun::MODE_MANUAL && isset($torrent['hr']) && $torrent['hr'] == \App\Models\Torrent::HR_YES)) {
-        $result = '<img class="hitandrun" src="pic/trans.gif" alt="H&R" title="H&R" />';
+        $result = '<img class="hitandrun" src="' . nexus_asset('pic/trans.gif') . '" alt="H&R" title="H&R" />';
     }
     return $result;
 }
@@ -6488,7 +6488,7 @@ function build_search_box_category_table($mode, $checkboxValue, $categoryHrefPre
                 }
                 $tdContent = <<<TDCONTENT
 <input type="checkbox" id="cat{$item->id}" name="cat{$item->id}" value="{$checkboxValue}"{$checked} />
-<a href="{$categoryHrefPrefix}cat={$item->id}"><img src="pic/cattrans.gif" class="{$item->class_name}" alt="{$item->name}" title="{$item->name}" style="background-image: url({$backgroundImagePath})" /></a>
+<a href="{$categoryHrefPrefix}cat={$item->id}"><img src="<?php echo nexus_asset('pic/cattrans.gif" class="{$item->class_name}" alt="{$item->name}" title="{$item->name}" style="background-image: url({$backgroundImagePath})" /></a>
 TDCONTENT;
             } else {
                 $tdContent = sprintf(

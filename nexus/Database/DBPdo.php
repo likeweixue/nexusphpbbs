@@ -6,9 +6,23 @@ class DBPdo implements DBInterface
 {
     private $pdo;
 
-    public function connect($host, $username, $password, $database, $port)
+    public function connect($host, $username, $password, $database, $port = 3306)
     {
-        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port ?: 3306, $database);
+        $host = trim((string)$host);
+        $port = intval($port) ?: 3306;
+        $database = trim((string)$database);
+        // 支持 host:port 写法与 unix socket 写法（/tmp/mysql.sock）
+        if (str_starts_with($host, '/')) {
+            $dsn = sprintf('mysql:unix_socket=%s;dbname=%s;charset=utf8mb4', $host, $database);
+        } else {
+            if (str_contains($host, ':')) {
+                [$host, $hostPort] = explode(':', $host, 2);
+                if (intval($hostPort)) {
+                    $port = intval($hostPort);
+                }
+            }
+            $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, $port, $database);
+        }
         $this->pdo = new \PDO($dsn, $username, $password, [
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
             \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_BOTH,

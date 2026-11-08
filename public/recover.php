@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 	$title = $SITENAME.$lang_recover['mail_title'];
     $mailOne = sprintf($lang_recover['mail_one'], $siteName);
     $mailFour = sprintf($lang_recover['mail_four'], $siteName);
-    \Nexus\Database\NexusDB::cache_put("recover:$hash", now()->toDateTimeString());
+    \Nexus\Database\NexusDB::cache_put("recover:$hash", \App\Support\Carbon::now()->toDateTimeString());
 
 	$body = <<<EOD
 {$mailOne}($email){$lang_recover['mail_two']}$ip{$lang_recover['mail_three']}

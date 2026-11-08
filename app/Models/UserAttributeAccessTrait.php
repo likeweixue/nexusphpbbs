@@ -44,6 +44,11 @@ trait UserAttributeAccessTrait
         return $this->attributes;
     }
 
+    public function toJson($options = 0): string
+    {
+        return json_encode($this->attributes, $options);
+    }
+
     public function update(array $attributes): bool
     {
         unset($attributes['id']);
@@ -55,6 +60,35 @@ trait UserAttributeAccessTrait
             $this->attributes[$key] = $value;
         }
         return true;
+    }
+
+    /**
+     * 保存模型（有 id 且记录已存在则更新，否则插入）
+     */
+    public function save(): bool
+    {
+        $attributes = $this->attributes;
+        if (empty($attributes)) {
+            return false;
+        }
+        if (!empty($attributes['id']) && \Nexus\Database\NexusDB::getOne(self::$table, 'id = ' . sqlesc($attributes['id']), 'id')) {
+            $id = $attributes['id'];
+            unset($attributes['id']);
+            \Nexus\Database\NexusDB::update(self::$table, $attributes, 'id = ' . sqlesc($id));
+            return true;
+        }
+        $id = \Nexus\Database\NexusDB::insert(self::$table, $attributes);
+        $this->attributes['id'] = $id;
+        return (bool)$id;
+    }
+
+    public function delete(): bool
+    {
+        $id = $this->attributes['id'] ?? null;
+        if (empty($id)) {
+            return false;
+        }
+        return \Nexus\Database\NexusDB::delete(self::$table, 'id = ' . sqlesc($id)) > 0;
     }
 
     public static function create(array $attributes): static

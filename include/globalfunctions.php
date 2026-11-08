@@ -495,6 +495,34 @@ function isHttps(): bool
 }
 
 
+/**
+ * 站点根目录的相对前缀。
+ *
+ * 页面在根目录下（如 index.php）时返回 "./"；
+ * 在子目录下（如 admincp/attendancelogs.php、install/install.php）时返回 "../"；
+ * 这样 head 里的 styles/、pic/、js/ 等相对路径在任何层级都能正确解析。
+ */
+function nexus_site_root(): string
+{
+    static $root = null;
+    if ($root !== null) {
+        return $root;
+    }
+    $script = $_SERVER['SCRIPT_NAME'] ?? ($_SERVER['PHP_SELF'] ?? '/');
+    $dir = rtrim(str_replace('\\', '/', dirname($script)), '/');
+    if ($dir === '' || $dir === '.') {
+        return $root = './';
+    }
+    $depth = count(array_filter(explode('/', trim($dir, '/')), 'strlen'));
+    return $root = str_repeat('../', $depth);
+}
+
+/** 把站点资源路径还原成站点根目录下的相对路径：styles/x.css => ../styles/x.css（子目录页面） */
+function nexus_asset(string $path): string
+{
+    return nexus_site_root() . ltrim($path, '/');
+}
+
 function getSchemeAndHttpHost(bool $fromConfig = false): string
 {
     if (isRunningInConsole() || $fromConfig) {

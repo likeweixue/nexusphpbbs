@@ -546,7 +546,7 @@ class Install
         if (empty($newData['APP_KEY'])) {
             $newData['APP_KEY'] = 'base64:' . base64_encode(random_bytes(32));
         }
-        if (empty($newData['APP_URL']) || $newData['APP_URL'] == 'http://localhost') {
+        if (empty($newData['APP_URL']) || $newData['APP_URL'] == 'http://localhost' || !filter_var($newData['APP_URL'], FILTER_VALIDATE_URL)) {
             $newData['APP_URL'] = getSchemeAndHttpHost();
         }
         $this->doLog("[CREATE ENV] final newData: " . json_encode($newData));

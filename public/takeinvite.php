@@ -122,7 +122,7 @@ if ($sendResult === true) {
             "inviter" => $id,
             "invitee" => $email,
             "hash" => $hash,
-            "time_invited" => now()->toDateTimeString()
+            "time_invited" => \App\Support\Carbon::now()->toDateTimeString()
         ];
         if ($isPreRegisterEmailAndUsername) {
             $insert["pre_register_email"] = $email;

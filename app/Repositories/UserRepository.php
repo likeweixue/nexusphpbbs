@@ -150,7 +150,7 @@ class UserRepository extends BaseRepository
             'editsecret' => '',
             'passhash' => $passhash,
             'stylesheet' => $setting['defstylesheet'],
-            'added' => now()->toDateTimeString(),
+            'added' => \App\Support\Carbon::now()->toDateTimeString(),
             'status' => User::STATUS_CONFIRMED,
             'class' => $class,
             'passkey' => md5($username.date("Y-m-d H:i:s").$passhash)
@@ -222,7 +222,7 @@ class UserRepository extends BaseRepository
             'reason' => $reason,
             'operator' => $operator->id,
         ];
-        $modCommentText = sprintf("%s - Disable by %s, reason: %s.", now()->format('Y-m-d'), $operator->username, $reason);
+        $modCommentText = sprintf("%s - Disable by %s, reason: %s.", \App\Support\Carbon::now()->format('Y-m-d'), $operator->username, $reason);
         NexusDB::transaction(function () use ($targetUser, $banLog, $modCommentText) {
             $targetUser->updateWithModComment(['enabled' => User::ENABLED_NO], $modCommentText);
             UserBanLog::query()->create($banLog);
@@ -245,14 +245,14 @@ class UserRepository extends BaseRepository
         ];
         if ($targetUser->class == User::CLASS_PEASANT) {
             // warn users until 30 days
-            $until = now()->addDays(30)->toDateTimeString();
+            $until = \App\Support\Carbon::now()->addDays(30)->toDateTimeString();
             $update['leechwarn'] = 'yes';
             $update['leechwarnuntil'] = $until;
         } else {
             $update['leechwarn'] = 'no';
             $update['leechwarnuntil'] = null;
         }
-        $modCommentText = sprintf("%s - Enable by %s, reason: %s", now()->format('Y-m-d'), $operator->username, $reason);
+        $modCommentText = sprintf("%s - Enable by %s, reason: %s", \App\Support\Carbon::now()->format('Y-m-d'), $operator->username, $reason);
         $targetUser->updateWithModComment($update, $modCommentText);
         do_log("user: $uid, $modCommentText, update: " . nexus_json_encode($update));
         $this->clearCache($targetUser);
@@ -263,7 +263,7 @@ class UserRepository extends BaseRepository
 
     private function setEnableLatelyCache(int $userId): void
     {
-        NexusDB::cache_put(User::getUserEnableLatelyCacheKey($userId), now()->toDateTimeString(), 86400);
+        NexusDB::cache_put(User::getUserEnableLatelyCacheKey($userId), \App\Support\Carbon::now()->toDateTimeString(), 86400);
     }
 
     public function getInviteInfo($id)
@@ -604,7 +604,7 @@ class UserRepository extends BaseRepository
         $operatorInfo = get_user_row($operatorId);
         $message['msg'] = nexus_trans('user.grant_props_notification.body', ['name' => $metaName, 'operator' => $operatorInfo['username'], 'duration' => $durationText], $locale);
         if (!empty($metaData['duration'])) {
-            $metaData['deadline'] = now()->addDays((int)$metaData['duration']);
+            $metaData['deadline'] = \App\Support\Carbon::now()->addDays((int)$metaData['duration']);
         }
         if ($allowMultiple) {
             //Allow multiple, just insert
@@ -629,7 +629,7 @@ class UserRepository extends BaseRepository
                         $keyExistsUpdates['deadline'] = $metaExists->deadline->addDays((int)$keyExistsUpdates['duration']);
                     } else {
                         $log .= ", expired or not set";
-                        $keyExistsUpdates['deadline'] = now()->addDays((int)$keyExistsUpdates['duration']);
+                        $keyExistsUpdates['deadline'] = \App\Support\Carbon::now()->addDays((int)$keyExistsUpdates['duration']);
                     }
                     unset($keyExistsUpdates['duration']);
                 } else {

@@ -281,7 +281,7 @@ class BonusRepository extends BaseRepository
             $increaseBonus = $requireBonus * (1 - $taxFactor);
             $owner = $torrent->user;
             if ($owner->id) {
-                $nowStr = now()->toDateTimeString();
+                $nowStr = \App\Support\Carbon::now()->toDateTimeString();
                 $businessType = BonusLogs::BUSINESS_TYPE_TORRENT_BE_DOWNLOADED;
                 $owner->increment('seedbonus', $increaseBonus);
                 $comment = nexus_trans('bonus.comment_torrent_be_downloaded', [
@@ -346,7 +346,7 @@ class BonusRepository extends BaseRepository
                 do_log("update user seedbonus affected rows: ".$affectedRows." != 1, query: " . last_query(), 'error');
                 throw new \RuntimeException("Update user seedbonus fail.");
             }
-            $nowStr = now()->toDateTimeString();
+            $nowStr = \App\Support\Carbon::now()->toDateTimeString();
             $bonusLog = [
                 'business_type' => $logBusinessType,
                 'uid' => $user->id,

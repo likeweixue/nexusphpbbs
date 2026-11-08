@@ -19,7 +19,7 @@ $torrentowner = $arr['owner'];
 if($torrentowner == $userid) exit(json_encode(fail('You are giving magic to yourself.', $_POST)));
 $t_ab = get_row_count("magic", "WHERE torrentid=$torrentid and userid=$userid");
 if ($t_ab != 0) exit(json_encode(fail("You already gave the magic value!", $_POST)));
-$todayStr = now()->startOfDay();
+$todayStr = \App\Support\Carbon::now()->startOfDay();
 $todayCount = \App\Models\Reward::query()
     ->where('userid', $userid)
     ->where('created_at', ">=", $todayStr)

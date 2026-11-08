@@ -162,6 +162,11 @@ if (
       <div class="container mx-auto">
           <?php echo $install->renderSteps()?>
           <div class="mt-10">
+              <?php if (!empty($error)) { ?>
+              <div class="text-center" style="margin: 20px 0; padding: 12px; border: 1px solid #d9534f; background: #fdf2f2; color: #a94442;">
+                  <strong>Error:</strong> <?php echo htmlspecialchars($error, ENT_QUOTES); ?>
+              </div>
+              <?php } ?>
               <form method="post" action="<?php echo getBaseUrl() . '?step=' . $currentStep?>">
               <input type="hidden" name="step" value="<?php echo $currentStep?>">
               <?php

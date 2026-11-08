@@ -1073,10 +1073,10 @@ class ExamRepository extends BaseRepository
         $range = $filters[$filter] ?? [];
         if (!empty($range)) {
             if (!empty($range[0])) {
-                $baseQuery->where("$userTable.added", "<=", now()->subDays($range[0])->toDateTimeString());
+                $baseQuery->where("$userTable.added", "<=", \App\Support\Carbon::now()->subDays($range[0])->toDateTimeString());
             }
             if (!empty($range[1])) {
-                $baseQuery->where("$userTable.added", '>=', now()->subDays($range[1])->toDateTimeString());
+                $baseQuery->where("$userTable.added", '>=', \App\Support\Carbon::now()->subDays($range[1])->toDateTimeString());
             }
         }
 
