@@ -29,6 +29,24 @@ class RowObject implements \ArrayAccess, \JsonSerializable
         return isset($this->attributes[$key]);
     }
 
+    /**
+     * 分类标签（替代 SearchBox::getTaxonomyLabel()，供搜索框分类表格使用）
+     */
+    public function getTaxonomyLabel($torrentField)
+    {
+        $lang = function_exists('get_langfolder_cookie') ? get_langfolder_cookie() : 'en';
+        $extra = $this->attributes['extra'] ?? [];
+        if (is_string($extra)) {
+            $extra = json_decode($extra, true) ?: [];
+        }
+        foreach ($extra['taxonomy_labels'] ?? [] as $item) {
+            if (($item['torrent_field'] ?? '') == $torrentField && !empty($item['display_text'][$lang])) {
+                return $item['display_text'][$lang];
+            }
+        }
+        return nexus_trans("searchbox.sub_category_{$torrentField}_label") ?: ucfirst($torrentField);
+    }
+
     public function toArray(): array
     {
         return $this->attributes;

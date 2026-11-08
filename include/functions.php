@@ -11,6 +11,16 @@ function get_langfolder_cookie($transToLocale = false)
 	$lang = "";
 	if (!isset($_COOKIE["c_lang_folder"])) {
 		$lang = $deflang;
+		//0.2.x：没有语言 cookie 时，优先使用用户资料里保存的语言
+		if (!empty($GLOBALS['CURUSER']['lang'])) {
+            $userLang = mysql_fetch_assoc(sql_query(
+                "SELECT site_lang_folder FROM language WHERE site_lang = 1 AND id = " . sqlesc($GLOBALS['CURUSER']['lang']) . " LIMIT 1"
+            ));
+            $enabled = \App\Models\Language::listEnabled();
+            if (!empty($userLang['site_lang_folder']) && in_array($userLang['site_lang_folder'], $enabled)) {
+                $lang = $userLang['site_lang_folder'];
+            }
+		}
 	} else {
 		$langfolder_array = get_langfolder_list();
 		$enabled = \App\Models\Language::listEnabled();
@@ -3207,9 +3217,23 @@ function logincookie($id, $authKey, $duration = 0)
     $update = [
         'last_login' => now(),
     ];
-    $langId = get_langid_from_langcookie();
+    //0.2.x：没有语言 cookie 时，沿用用户资料里的语言（不覆盖）；有 cookie 时以 cookie 为准
+    $langId = 0;
+    if (isset($_COOKIE['c_lang_folder']) && $_COOKIE['c_lang_folder'] !== '') {
+        $langId = get_langid_from_langcookie();
+    }
     if ($langId > 0) {
         $update['lang'] = $langId;
+    } else {
+        //0.2.x：没有语言 cookie 时，保持用户资料里的语言，并把 cookie 补上，避免回退到站点默认语言
+        $userLang = \Nexus\Database\NexusDB::select(
+            'select language.site_lang_folder from users inner join language on language.id = users.lang'
+            . ' where users.id = ' . sqlesc($id) . ' and language.site_lang = 1 limit 1'
+        );
+        $userLang = $userLang[0] ?? [];
+        if (!empty($userLang['site_lang_folder'])) {
+            set_langfolder_cookie($userLang['site_lang_folder']);
+        }
     }
 	\Nexus\Database\NexusDB::update('users', $update, 'id = ' . sqlesc($id));
 }
@@ -6380,7 +6404,14 @@ function calculate_harem_addition($uid)
 function build_search_box_category_table($mode, $checkboxValue, $categoryHrefPrefix, $taxonomyHrefPrefix, $taxonomyNameLength, $checkedValues = '', array $options = [])
 {
     parse_str($checkedValues, $checkedValuesArr);
-    $searchBox = \App\Models\SearchBox::query()->with(['categories', 'categories.icon'])->findOrFail($mode);
+    $searchBoxRow = \Nexus\Database\NexusDB::getOne('searchbox', 'id = ' . sqlesc($mode));
+    if (!$searchBoxRow) {
+        return '';
+    }
+    if (isset($searchBoxRow['extra']) && is_string($searchBoxRow['extra'])) {
+        $searchBoxRow['extra'] = json_decode($searchBoxRow['extra'], true) ?: [];
+    }
+    $searchBox = new \App\Support\RowObject($searchBoxRow);
     $lang = get_langfolder_cookie();
     $withTaxonomies = [];
     if ($searchBox->showsubcat) {
@@ -6402,6 +6433,7 @@ function build_search_box_category_table($mode, $checkboxValue, $categoryHrefPre
             }
         }
     }
+    $searchBox->mode = $mode;
     $html = '<table>';
     if (!empty($options['section_name'])) {
         $html .= sprintf('<caption><font class="big">%s</font></caption>', $searchBox->section_name[$lang] ?? '');
@@ -6413,6 +6445,11 @@ function build_search_box_category_table($mode, $checkboxValue, $categoryHrefPre
         'select * from categories where mode in (' . intval($searchBox->mode) . ', 0)'
         . ' order by sort_index desc, id asc'
     );
+    //分类图标（替代原来的 categories.icon 关联）
+    $categoryIcons = [];
+    foreach (\Nexus\Database\NexusDB::select('select * from caticons') as $iconRow) {
+        $categoryIcons[$iconRow['id']] = new \App\Support\RowObject($iconRow);
+    }
     $categoryCollection = \Nexus\Database\QueryCollection::make(array_map(fn($row) => new \App\Support\RowObject($row), $categoryRows));
     if (!empty($options['select_unselect'])) {
         $categoryCollection->push(new \App\Support\RowObject(['mode' => -1, 'id' => -1, 'name' => '']));
@@ -6438,7 +6475,10 @@ function build_search_box_category_table($mode, $checkboxValue, $categoryHrefPre
                         $checked = ' checked';
                     }
                 }
-                $icon = $item->icon;
+                $icon = $categoryIcons[$item->id] ?? null;
+                if (!$icon) {
+                    $icon = new \App\Support\RowObject(['name' => '', 'folder' => '', 'multilang' => 'no']);
+                }
                 $iconFolder = trim($icon->folder, '/');
                 $langAndFile = sprintf('%s%s',  $icon->multilang == 'yes' ? "$lang/" : "", $item->image);
                 if (file_exists(getFullDirectory("pic/category/$iconFolder/$langAndFile"))) {
@@ -6474,17 +6514,17 @@ TD;
         }
         $html .= sprintf('<tr><td class="embedded" align="left">%s</td></tr>', $searchBox->getTaxonomyLabel($torrentField));
         /** @var \Nexus\Database\QueryCollection $taxonomyCollection */
-        $taxonomyCollection = \Nexus\Database\NexusDB::table($tableName)
-            ->where(function (\Nexus\Database\QueryBuilder $query) use ($mode) {
-                return $query->whereIn('mode', [$mode, 0]);
-            })
-            ->orderBy('sort_index', 'desc')
-            ->get()
-        ;
+        $taxonomyRows = \Nexus\Database\NexusDB::select(
+            'select * from `' . preg_replace('/[^a-z0-9_]/', '', $tableName) . '`'
+            . ' where mode in (' . intval($mode) . ', 0) order by sort_index desc'
+        );
+        $taxonomyCollection = \Nexus\Database\QueryCollection::make(
+            array_map(fn($row) => new \App\Support\RowObject($row), $taxonomyRows)
+        );
         $modelName = \App\Models\SearchBox::$taxonomies[$torrentField]['model'];
         $checkPrefix = $torrentField;
         if (!empty($options['select_unselect'])) {
-            $taxonomyCollection->push(new $modelName(['mode' => -1]));
+            $taxonomyCollection->push(new \App\Support\RowObject(['mode' => -1, 'id' => -1, 'name' => '']));
         }
         $taxonomyChunks = $taxonomyCollection->chunk($searchBox->catsperrow);
         foreach ($taxonomyChunks as $chunk) {

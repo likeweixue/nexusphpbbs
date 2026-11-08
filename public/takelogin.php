@@ -83,12 +83,13 @@ do_log("$log, login successful");
 $userRep = new \App\Repositories\UserRepository();
 $userRep->saveLoginLog($row['id'], $ip, 'Web', true);
 
-//update user lang
-$language = \Nexus\Database\NexusDB::getOne('language', 'site_lang_folder = ' . sqlesc(get_langfolder_cookie()));
-
-if ($language && $language['id'] != $row["lang"]) {
-    do_log(sprintf("update user: %s lang: %s => %s", $row["id"], $row["lang"], $language['id']));
-    $update["lang"] = $language['id'];
+//update user lang（0.2.x：只有用户显式选择了语言 cookie 时才覆盖资料里的语言）
+if (isset($_COOKIE['c_lang_folder']) && $_COOKIE['c_lang_folder'] !== '') {
+    $language = \Nexus\Database\NexusDB::getOne('language', 'site_lang_folder = ' . sqlesc(get_langfolder_cookie()));
+    if ($language && $language['id'] != $row["lang"]) {
+        do_log(sprintf("update user: %s lang: %s => %s", $row["id"], $row["lang"], $language['id']));
+        $update["lang"] = $language['id'];
+    }
 }
 if (empty($row['auth_key'])) {
     $row['auth_key'] = $update['auth_key'] = hash('sha256', mksecret(32));
