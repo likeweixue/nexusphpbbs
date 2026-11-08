@@ -2832,7 +2832,7 @@ else {
                 <a href="medal.php">[<?php echo nexus_trans('medal.label')?>]</a>
                 <a href="task.php">[<?php echo nexus_trans('exam.type_task')?>]</a>
                 <font class = 'color_invite'><?php echo $lang_functions['text_invite'] ?></font>[<a href="invite.php?id=<?php echo $CURUSER['id']?>"><?php echo $lang_functions['text_send'] ?></a>]: <?php echo sprintf('%s(%s)', $CURUSER['invites'], \App\Models\Invite::query()->where('inviter', $CURUSER['id'])->where('invitee', '')->where('expired_at', '>', now())->count())?>
-                <?php if(get_user_class() >= \App\Models\User::getAccessAdminClassMin()) printf('[<a href="%s" target="_blank">%s</a>]', nexus_env('FILAMENT_PATH', 'nexusphp'), $lang_functions['text_management_system'])?>
+                <?php if(get_user_class() >= \App\Models\User::getAccessAdminClassMin()) printf('[<a href="%s">%s</a>]', admin_panel_enabled() ? 'controlcenter.php' : nexus_env('FILAMENT_PATH', 'nexusphp'), $lang_functions['text_management_system'])?>
                 <br />
             </span>
         </td>
@@ -5547,6 +5547,33 @@ function getFullDirectory($dir)
         return realpath($dir);
     }
     return $dir;
+}
+
+/**
+ * 是否使用传统 PHP 管理后台（public/controlcenter.php）。
+ * 设为 legacy 时后台不加载 Filament，没有 vendor 也能运行。
+ */
+function admin_panel_enabled(): bool
+{
+    $panel = getenv('ADMIN_PANEL') ?: 'legacy';
+    return $panel !== 'filament';
+}
+
+if (!function_exists('get_forum_row')) {
+function get_forum_row($forumid = 0)
+{
+	global $Cache;
+	if (!$forums = $Cache->get_value('forums_list')){
+		$forums = array();
+		$res2 = sql_query("SELECT * FROM forums ORDER BY forid ASC, sort ASC") or sqlerr(__FILE__, __LINE__);
+		while ($row2 = mysql_fetch_array($res2))
+			$forums[$row2['id']] = $row2;
+		$Cache->cache_value('forums_list', $forums, 86400);
+	}
+	if (!$forumid)
+		return $forums;
+	else return $forums[$forumid];
+}
 }
 
 function guest_forum_access_enabled(): bool

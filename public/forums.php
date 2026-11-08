@@ -103,20 +103,6 @@ function update_topic_last_post($topicid)
 	sql_query("UPDATE topics SET lastpost=".sqlesc($postid)." WHERE id=".sqlesc($topicid)) or sqlerr(__FILE__, __LINE__);
 }
 
-function get_forum_row($forumid = 0)
-{
-	global $Cache;
-	if (!$forums = $Cache->get_value('forums_list')){
-		$forums = array();
-		$res2 = sql_query("SELECT * FROM forums ORDER BY forid ASC, sort ASC") or sqlerr(__FILE__, __LINE__);
-		while ($row2 = mysql_fetch_array($res2))
-			$forums[$row2['id']] = $row2;
-		$Cache->cache_value('forums_list', $forums, 86400);
-	}
-	if (!$forumid)
-		return $forums;
-	else return $forums[$forumid];
-}
 function get_last_read_post_id($topicid) {
 	global $CURUSER, $Cache;
 	static $ret;

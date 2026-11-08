@@ -2,6 +2,28 @@
 
 ## 版本历史
 
+### 0.1.7（2026-11-09）— 管理系统改为传统风格 + 只读管理列表
+
+- **入口**：顶部“管理系统”由 Filament 后台（`/nexusphp`）改为传统页面 `controlcenter.php`，与“管理组面板”同一套 `colhead` / `rowfollow` 表格样式，按“用户相关 / 系统相关 / OAuth 授权”分组，一页直达，没有多级菜单。
+- **新增 23 个只读管理列表**（`public/admincp/`，均支持关键字搜索与分页）：
+  - 用户：用户列表、用户道具、用户勋章、用户邀请、用户考核、签到记录、魔力记录、登录记录、修改记录、改名记录、访问令牌、通行密钥
+  - 系统：勋章、考核 & 任务、消息模板、操作日志、IP 记录、插件
+  - OAuth：客户端、身份验证、访问令牌、刷新令牌、授权码
+- **菜单定义**：`app/Console/Admin/AdminMenu.php` 为纯 PHP 数组，不依赖 Filament；控制中心页还会列出原有传统管理功能（原 staffpanel 各分组 + 站点设定）。
+- **可回退**：`ADMIN_PANEL=legacy`（默认）使用传统后台；设为 `filament` 时恢复原来的 `/nexusphp` 入口。
+- **公共函数**：`get_forum_row()` 从 `forums.php` 移到 `include/functions.php` 并加 `function_exists` 保护，后台列表可在不加载论坛页的情况下复用。
+
+#### 关于 vendor 依赖（重要）
+
+本次只替换了后台入口，**`vendor/` 仍然必需**：论坛版从 0.1.0 起就是“传统页面运行在 Laravel 之上”的架构，`include/core.php` 启动即加载 `vendor/autoload.php`，`public` 与 `include` 中共有 400+ 处 Eloquent / Repository 调用（消息、签到、魔力、勋章、任务、附件、通知、迁移等）。实测移除 `vendor/` 后论坛、登录、首页等全部 500。
+
+要真正做到“无 vendor”，需要单独的“去 Laravel 化”改造：把上述调用改为原生 SQL、用 SQL 脚本替代 225 个迁移、去掉 Capsule 数据库层，分模块回归后再从发布包中移除 `vendor/`。
+
+#### 升级说明
+
+- 本版本没有新的数据库迁移，直接覆盖文件即可。
+- 建议执行一次 `php artisan cache:clear`，确认后台链接指向 `controlcenter.php`。
+
 ### 0.1.6（2026-11-09）— 帖子收藏（星标）/ 收藏列表
 
 - **帖子星标**：每个帖子的“引用”按钮左侧新增五角星按钮，空心表示未收藏、金色实心表示已收藏；点击即时切换（Ajax），无需刷新，悬停提示“收藏该贴 / 取消收藏”。
