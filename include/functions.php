@@ -2439,7 +2439,7 @@ function menu ($selected = "home") {
 	global $lang_functions;
 	global $BASEURL,$CURUSER;
 	if (empty($CURUSER)) {
-		print ("<div id=\"nav\"><ul id=\"mainmenu\" class=\"menu\"><li class=\"selected\"><a href=\"forums.php\">" . $lang_functions['text_forums'] . "</a></li></ul></div>");
+		//[FORUM EDITION] 访客不显示顶部菜单，避免只有一个孤立菜单项
 		return;
 	}
 	global $enableoffer, $enablespecial, $enableextforum, $extforumurl, $where_tweak;
@@ -2754,13 +2754,7 @@ if ($enabledonation == 'yes'){?>
 
 <table class="mainouter" width="<?php echo CONTENT_WIDTH ?>" cellspacing="0" cellpadding="5" align="center">
 	<tr><td id="nav_block" class="text" align="center">
-<?php if (!$CURUSER) {
-    if (guest_forum_access_enabled()) {
-        begin_main_frame();
-        menu();
-        end_main_frame();
-    }
-?>
+<?php if (!$CURUSER) { ?>
 			<a href="login.php"><font class="big"><b><?php echo $lang_functions['text_login'] ?></b></font></a> / <a href="signup.php"><font class="big"><b><?php echo $lang_functions['text_signup'] ?></b></font></a>
 <?php }
 else {

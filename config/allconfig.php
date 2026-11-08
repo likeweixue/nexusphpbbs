@@ -199,6 +199,7 @@ $CODE=array(
 $MAIN=array(
 	'site_online' => 'yes',
     'guest_forum_access' => 'no',
+    'bonus_karma_note' => "欢迎来到魔力值系统。\n\n发帖、回帖等论坛行为都可以获得魔力值，具体奖励规则以站点公告为准。\n\n魔力值可以在本页兑换邀请、勋章、补签卡、改名卡、贵宾等。",
 	'max_torrent_size' => '1048576',
 	'announce_interval' => '1800',
 	'annintertwoage' => '7',

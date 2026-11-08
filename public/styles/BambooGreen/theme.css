@@ -636,3 +636,10 @@ A.Peasant_Name:visited{color: #708090}
 .recommended{color:#820084}
 .new{color:#ff0000}
 .striking{color:#ff0000}
+
+/* ===== 自适应全屏布局（与复古黄主题保持一致） ===== */
+table.mainouter,
+table.main {
+  width: 100% !important;
+  max-width: 100% !important;
+}

@@ -172,6 +172,9 @@ $lang_mybonus = array
     'medal_additional_desc' => '勋章奖励计算公式同上，不考虑低保',
     'medal_additional_factor' => '最终奖励为计算所得勋章奖励乘以勋章加成系数，当前勋章加成系数为: ',
     'text_bonus_mini_size' => '种子体积要求至少为 %s，小于此体积的种子不参与魔力计算',
+    'text_karma_note_default' => "欢迎来到魔力值系统。\n\n发帖、回帖等论坛行为都可以获得魔力值，具体奖励规则请留意站点公告。\n\n魔力值可以在本页兑换邀请、勋章、补签卡、改名卡、贵宾等。",
+    'text_edit_karma_note' => '编辑',
+
 );
 
 ?>

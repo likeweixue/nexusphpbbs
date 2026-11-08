@@ -171,7 +171,10 @@ where<ul><li><b>A</b> is an intermediate variable</li><li><b>Ti</b> is the <b>i<
     'text_get_by_medal' => 'Medal bonus will get the following additional bonus value per hour',
     'medal_additional_desc' => 'Medal bonus calculation formula is the same as above, regardless of minimum guarantee',
     'medal_additional_factor' => 'The final bonus is the calculated medal bonus multiplied by the medal_additional_factor',
-    'text_bonus_mini_size' => 'Torrent size must be at least %s. Torrent size smaller than this volume are excluded from bonus calculations'
+    'text_bonus_mini_size' => 'Torrent size must be at least %s. Torrent size smaller than this volume are excluded from bonus calculations',
+    'text_karma_note_default' => "Welcome to the bonus point system.\n\nPosting and replying on the forum earns you bonus points; check the site announcements for details.\n\nBonus points can be exchanged on this page for invites, medals, attendance cards and more.",
+    'text_edit_karma_note' => 'Edit',
+
 );
 
 ?>

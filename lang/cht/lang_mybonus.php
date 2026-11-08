@@ -172,6 +172,9 @@ $lang_mybonus = array
     'medal_additional_desc' => '勛章獎勵計算公式同上，不考慮低保',
     'medal_additional_factor' => '最終獎勵為計算所得勛章獎勵乘以勛章加成系數，當前勛章加成系數為: ',
     'text_bonus_mini_size' => '種子體積要求至少爲 %s，小於此體積的種子不參與魔力計算',
+    'text_karma_note_default' => "歡迎來到魔力值系統。\n\n發帖、回帖等論壇行為都可以獲得魔力值，具體獎勵規則請留意站點公告。\n\n魔力值可以在本頁兌換邀請、勳章、補簽卡、改名卡、貴賓等。",
+    'text_edit_karma_note' => '編輯',
+
 );
 
 ?>

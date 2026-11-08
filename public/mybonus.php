@@ -11,60 +11,7 @@ function bonusarray($option = 0){
 	global $lang_mybonus;
 
 	$results = [];
-    //1.0 GB Uploaded
-    $bonus = array();
-    $bonus['points'] = $onegbupload_bonus;
-    $bonus['art'] = 'traffic';
-    $bonus['menge'] = 1073741824;
-    $bonus['name'] = $lang_mybonus['text_uploaded_one'];
-    $bonus['description'] = $lang_mybonus['text_uploaded_note'];
-	$results[] = $bonus;
-
-    //5.0 GB Uploaded
-    $bonus = array();
-    $bonus['points'] = $fivegbupload_bonus;
-    $bonus['art'] = 'traffic';
-    $bonus['menge'] = 5368709120;
-    $bonus['name'] = $lang_mybonus['text_uploaded_two'];
-    $bonus['description'] = $lang_mybonus['text_uploaded_note'];
-    $results[] = $bonus;
-
-
-    //10.0 GB Uploaded
-    $bonus = array();
-    $bonus['points'] = $tengbupload_bonus;
-    $bonus['art'] = 'traffic';
-    $bonus['menge'] = 10737418240;
-    $bonus['name'] = $lang_mybonus['text_uploaded_three'];
-    $bonus['description'] = $lang_mybonus['text_uploaded_note'];
-    $results[] = $bonus;
-
-    //100.0 GB Uploaded
-    $bonus = array();
-    $bonus['points'] = get_setting('bonus.hundredgbupload');
-    $bonus['art'] = 'traffic';
-    $bonus['menge'] = 107374182400;
-    $bonus['name'] = $lang_mybonus['text_uploaded_four'];
-    $bonus['description'] = $lang_mybonus['text_uploaded_note'];
-    $results[] = $bonus;
-
-    //10.0 GB Downloaded
-    $bonus = array();
-    $bonus['points'] = get_setting('bonus.tengbdownload');
-    $bonus['art'] = 'traffic_downloaded';
-    $bonus['menge'] = 10737418240;
-    $bonus['name'] = $lang_mybonus['text_downloaded_ten_gb'];
-    $bonus['description'] = $lang_mybonus['text_download_note'];
-    $results[] = $bonus;
-
-    //100.0 GB Downloaded
-    $bonus = array();
-    $bonus['points'] = get_setting('bonus.hundredgbdownload');
-    $bonus['art'] = 'traffic_downloaded';
-    $bonus['menge'] = 107374182400;
-    $bonus['name'] = $lang_mybonus['text_downloaded_hundred_gb'];
-    $bonus['description'] = $lang_mybonus['text_download_note'];
-    $results[] = $bonus;
+    //[FORUM EDITION] 上传量 / 下载量兑换（种子流量）已移除
 
     //Invite
     if ($oneinvite_bonus > 0){
@@ -383,7 +330,7 @@ for ($i=0; $i < count($allBonus); $i++)
 			print("<td class=\"rowfollow\" align='left'><h1>".$bonusarray['name']."</h1>".$bonusarray['description']."<br /><br />".$lang_mybonus['text_enter_receiver_name']."<br />$otheroption</td><td class=\"rowfollow nowrap\" align='center'>".$lang_mybonus['text_min']."100</td>");
 	}
 	elseif ($bonusarray['art'] == 'gift_2'){  //charity giving
-			$otheroption = "<table width=\"100%\"><tr><td class=\"embedded\">".$lang_mybonus['text_ratio_below']."<select name=\"ratiocharity\"> <option value=\"0.1\"> 0.1</option><option value=\"0.2\"> 0.2</option><option value=\"0.3\" selected=\"selected\"> 0.3</option> <option value=\"0.4\"> 0.4</option> <option value=\"0.5\"> 0.5</option> <option value=\"0.6\"> 0.6</option><option value=\"0.7\"> 0.7</option><option value=\"0.8\"> 0.8</option></select>".$lang_mybonus['text_and_downloaded_above']." 10 GB</td><td class=\"embedded\"><b>".$lang_mybonus['text_to_be_given']."</b><select name=\"bonuscharity\" id=\"charityselect\" > <option value=\"1000\"> 1,000</option><option value=\"2000\"> 2,000</option><option value=\"3000\" selected=\"selected\"> 3000</option> <option value=\"5000\"> 5,000</option> <option value=\"8000\"> 8,000</option> <option value=\"10000\"> 10,000</option><option value=\"20000\"> 20,000</option><option value=\"50000\"> 50,000</option></select>".$lang_mybonus['text_karma_points']."</td></tr></table>";
+			$otheroption = "<table width=\"100%\"><tr><td class=\"embedded\"><b>".$lang_mybonus['text_to_be_given']."</b><select name=\"bonuscharity\" id=\"charityselect\" > <option value=\"1000\"> 1,000</option><option value=\"2000\"> 2,000</option><option value=\"3000\" selected=\"selected\"> 3000</option> <option value=\"5000\"> 5,000</option> <option value=\"8000\"> 8,000</option> <option value=\"10000\"> 10,000</option><option value=\"20000\"> 20,000</option><option value=\"50000\"> 50,000</option></select>".$lang_mybonus['text_karma_points']."</td></tr></table>";
 			print("<td class=\"rowfollow\" align='left'><h1>".$bonusarray['name']."</h1>".$bonusarray['description']."<br /><br />".$lang_mybonus['text_select_receiver_ratio']."<br />$otheroption</td><td class=\"rowfollow nowrap\" align='center'>".$lang_mybonus['text_min']."1,000<br />".$lang_mybonus['text_max']."50,000</td>");
 	}
 	else {  //for VIP or Upload
@@ -438,19 +385,7 @@ for ($i=0; $i < count($allBonus); $i++)
 		}
 		elseif ($bonusarray['art'] == 'title')
 			print("<td class=\"rowfollow\" align=\"center\"><input type=\"submit\" name=\"submit\" value=\"".$lang_mybonus['submit_exchange']."\" /></td>");
-		elseif ($bonusarray['art'] == 'traffic')
-		{
-			if ($CURUSER['downloaded'] > 0){
-				if ($CURUSER['uploaded'] > $dlamountlimit_bonus * 1073741824)//Uploaded amount reach limit
-					$ratio = $CURUSER['uploaded']/$CURUSER['downloaded'];
-				else $ratio = 0;
-			}
-			else $ratio = $ratiolimit_bonus + 1; //Ratio always above limit
-			if ($ratiolimit_bonus > 0 && $ratio > $ratiolimit_bonus){
-				print("<td class=\"rowfollow\" align=\"center\"><input type=\"submit\" name=\"submit\" value=\"".$lang_mybonus['text_ratio_too_high']."\" disabled=\"disabled\" /></td>");
-			}
-			else print("<td class=\"rowfollow\" align=\"center\"><input type=\"submit\" name=\"submit\" value=\"".$lang_mybonus['submit_exchange']."\" /></td>");
-		} elseif ($bonusarray['art'] == 'change_username_card') {
+		elseif ($bonusarray['art'] == 'change_username_card') {
 		    if (\App\Models\UserMeta::query()->where('uid', $CURUSER['id'])->where('meta_key', \App\Models\UserMeta::META_KEY_CHANGE_USERNAME)->exists()) {
                 print("<td class=\"rowfollow\" align=\"center\"><input type=\"submit\" name=\"submit\" value=\"".$lang_mybonus['text_change_username_card_already_has']."\" disabled=\"disabled\"/></td>");
             } else {
@@ -478,100 +413,49 @@ for ($i=0; $i < count($allBonus); $i++)
 print("</table><br />");
 ?>
 
-<table width="97%" cellpadding="3">
-<tr><td class="colhead" align="center"><font class="big"><?php echo $lang_mybonus['text_what_is_karma'] ?></font></td></tr>
-<tr><td class="text" align="left">
 <?php
-print("<h1>".$lang_mybonus['text_get_by_seeding']."</h1>");
-print("<ul>");
-if ($perseeding_bonus > 0)
-	print("<li>".$perseeding_bonus.$lang_mybonus['text_point'].add_s($perseeding_bonus).$lang_mybonus['text_for_seeding_torrent'].$maxseeding_bonus.$lang_mybonus['text_torrent'].add_s($maxseeding_bonus).")</li>");
-print("<li>".$lang_mybonus['text_bonus_formula_one'].$tzero_bonus.$lang_mybonus['text_bonus_formula_two'].$nzero_bonus.$lang_mybonus['text_bonus_formula_wi'].get_setting('bonus.zero_bonus_factor').$lang_mybonus['text_bonus_formula_three'].$bzero_bonus.$lang_mybonus['text_bonus_formula_four'].$l_bonus.$lang_mybonus['text_bonus_formula_five']."</li>");
-$minSize = get_setting('bonus.min_size');
-if ($minSize > 0) {
-    print("<li>".sprintf($lang_mybonus['text_bonus_mini_size'], mksize($minSize))."</li>");
-}
-if ($donortimes_bonus)
-	print("<li>".$lang_mybonus['text_donors_always_get'].$donortimes_bonus.$lang_mybonus['text_times_of_bonus']."</li>");
-
-print("</ul>");
-
-$seedBonusResult = calculate_seed_bonus($CURUSER['id']);
-$A = $seedBonusResult['A'];
-
-$bonusTableResult = build_bonus_table($CURUSER, $seedBonusResult, ['table_style' => 'width: 50%']);
-
-$percent = $seedBonusResult['seed_bonus'] * 100 / ($bzero_bonus + $perseeding_bonus * $maxseeding_bonus);
-print("<div align=\"center\">".$lang_mybonus['text_you_are_currently_getting'].round($seedBonusResult['seed_bonus'],3).$lang_mybonus['text_point'].add_s($seedBonusResult['seed_bonus']).$lang_mybonus['text_per_hour']." (A = ".round($A,1).")</div><table align=\"center\" border=\"0\" width=\"400\"><tr><td class=\"loadbarbg\" style='border: none; padding: 0px;'>");
-
-if ($percent <= 30) $loadpic = "loadbarred";
-elseif ($percent <= 60) $loadpic = "loadbaryellow";
-else $loadpic = "loadbargreen";
-$width = $percent * 4;
-print("<img class=\"".$loadpic."\" src=\"pic/trans.gif\" style=\"width: ".$width."px;\" alt=\"".$percent."%\" /></td></tr></table>");
-
-if ($bonusTableResult['has_medal_addition']) {
-    print("<h1>".$lang_mybonus['text_get_by_medal']."</h1>");
-    print("<ul>");
-    print("<li>".sprintf($lang_mybonus['medal_additional_desc'], $CURUSER['id'])."</li>");
-    print("<li>".$lang_mybonus['medal_additional_factor'].$bonusTableResult['medal_addition_factor']."</li>");
-    print("</ul>");
-}
-if ($bonusTableResult['has_official_addition']) {
-    print("<h1>".$lang_mybonus['text_get_by_seeding_official']."</h1>");
-    print("<ul>");
-    print("<li>".$lang_mybonus['official_calculate_method']."</li>");
-    print("<li>".$lang_mybonus['official_tag_bonus_additional_factor'].$bonusTableResult['official_addition_factor']."</li>");
-    print("</ul>");
+// ===== 魔力值说明（可编辑） =====
+$karmaNoteEditable = user_can('staffmem');
+$karmaNoteEditMode = $karmaNoteEditable && (isset($_GET['karmanote_edit']) || isset($_GET['karmanote_preview']));
+$karmaNoteContent = get_setting('main.bonus_karma_note', '');
+$karmaNotePreview = null;
+if ($karmaNoteEditMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['karmanote_content'])) {
+    $karmaNoteContent = (string)$_POST['karmanote_content'];
+    if (!empty($_POST['karmanote_save'])) {
+        saveSetting('main', ['bonus_karma_note' => $karmaNoteContent]);
+        $Cache->delete_value('main_bonus_karma_note');
+        nexus_redirect('mybonus.php');
+    }
+    $karmaNotePreview = format_comment($karmaNoteContent, false);
 }
 
-if ($bonusTableResult['has_harem_addition']) {
-    print("<h1>".$lang_mybonus['text_get_by_harem']."</h1>");
-    print("<ul>");
-    print("<li>".sprintf($lang_mybonus['harem_additional_desc'], $CURUSER['id'])."</li>");
-    print("<li>".$lang_mybonus['harem_additional_factor'].$bonusTableResult['harem_addition_factor']."</li>");
-    print("<li>".$lang_mybonus['harem_additional_note']."</li>");
-    print("</ul>");
+if ($karmaNoteEditMode) {
+    print("<table width=\"97%\" cellpadding=\"3\">\n");
+    print("<tr><td class=\"colhead\" align=\"center\"><font class=\"big\">".$lang_mybonus['text_what_is_karma']."</font></td></tr>\n");
+    print("<tr><td class=\"text\" align=\"center\"><form method=\"post\" action=\"mybonus.php?karmanote_edit=1\">");
+    print("<textarea name=\"karmanote_content\" rows=\"18\" style=\"width: 96%; font-family: monospace;\">".htmlspecialchars($karmaNoteContent)."</textarea>");
+    print("<div style=\"margin-top: 6px; color: gray;\">支持 BBCode（[b][i][u][url][img][list][*] 等），保存后显示在魔力值页面。</div>");
+    print("<table align=\"center\" cellpadding=\"4\"><tr>");
+    print("<td class=\"embedded\"><input type=\"submit\" class=\"btn\" name=\"karmanote_save\" value=\"提交\"></td>");
+    print("<td class=\"embedded\"><input type=\"submit\" class=\"btn2\" name=\"karmanote_preview\" value=\"预览\">");
+    print("<input type=\"button\" class=\"btn2\" value=\"取消\" onclick=\"location.href='mybonus.php';\"></td>");
+    print("</tr></table></form></td></tr>");
+    if ($karmaNotePreview !== null) {
+        print("<tr><td class=\"text\" align=\"left\">".$karmaNotePreview."</td></tr>");
+    }
+    print("</table><br />");
+} else {
+    if (!$karmaNoteContent) {
+        $karmaNoteContent = $lang_mybonus['text_karma_note_default'] ?? '';
+    }
+    print("<table width=\"97%\" cellpadding=\"3\">\n");
+    print("<tr><td class=\"colhead\" align=\"center\"><font class=\"big\">".$lang_mybonus['text_what_is_karma']."</font></td></tr>\n");
+    print("<tr><td class=\"text\" align=\"left\">".format_comment($karmaNoteContent, false)."</td></tr>");
+    if ($karmaNoteEditable) {
+        print("<tr><td align=\"center\"><a href=\"mybonus.php?karmanote_edit=1\" class=\"btn\">".($lang_mybonus['text_edit_karma_note'] ?? '编辑')."</a></td></tr>");
+    }
+    print("</table><br />");
 }
-
-print("<h1>".$lang_mybonus['text_bonus_summary']."</h1>");
-print '<div style="display: flex;justify-content: center;margin-top: 20px;">'.$bonusTableResult['table'].'</div>';
-
-print("<h1>".$lang_mybonus['text_other_things_get_bonus']."</h1>");
-print("<ul>");
-if ($uploadtorrent_bonus > 0)
-	print("<li>".$lang_mybonus['text_upload_torrent'].$uploadtorrent_bonus.$lang_mybonus['text_point'].add_s($uploadtorrent_bonus)."</li>");
-if ($uploadsubtitle_bonus > 0)
-	print("<li>".$lang_mybonus['text_upload_subtitle'].$uploadsubtitle_bonus.$lang_mybonus['text_point'].add_s($uploadsubtitle_bonus)."</li>");
-if ($starttopic_bonus > 0)
-	print("<li>".$lang_mybonus['text_start_topic'].$starttopic_bonus.$lang_mybonus['text_point'].add_s($starttopic_bonus)."</li>");
-if ($makepost_bonus > 0)
-	print("<li>".$lang_mybonus['text_make_post'].$makepost_bonus.$lang_mybonus['text_point'].add_s($makepost_bonus)."</li>");
-if ($addcomment_bonus > 0)
-	print("<li>".$lang_mybonus['text_add_comment'].$addcomment_bonus.$lang_mybonus['text_point'].add_s($addcomment_bonus)."</li>");
-if ($pollvote_bonus > 0)
-	print("<li>".$lang_mybonus['text_poll_vote'].$pollvote_bonus.$lang_mybonus['text_point'].add_s($pollvote_bonus)."</li>");
-if ($offervote_bonus > 0)
-	print("<li>".$lang_mybonus['text_offer_vote'].$offervote_bonus.$lang_mybonus['text_point'].add_s($offervote_bonus)."</li>");
-if ($funboxvote_bonus > 0)
-	print("<li>".$lang_mybonus['text_funbox_vote'].$funboxvote_bonus.$lang_mybonus['text_point'].add_s($funboxvote_bonus)."</li>");
-if ($saythanks_bonus > 0)
-	print("<li>".$lang_mybonus['text_say_thanks'].$saythanks_bonus.$lang_mybonus['text_point'].add_s($saythanks_bonus)."</li>");
-if ($receivethanks_bonus > 0)
-	print("<li>".$lang_mybonus['text_receive_thanks'].$receivethanks_bonus.$lang_mybonus['text_point'].add_s($receivethanks_bonus)."</li>");
-if ($adclickbonus_advertisement > 0)
-	print("<li>".$lang_mybonus['text_click_on_ad'].$adclickbonus_advertisement.$lang_mybonus['text_point'].add_s($adclickbonus_advertisement)."</li>");
-if ($prolinkpoint_bonus > 0)
-	print("<li>".$lang_mybonus['text_promotion_link_clicked'].$prolinkpoint_bonus.$lang_mybonus['text_point'].add_s($prolinkpoint_bonus)."</li>");
-if ($funboxreward_bonus > 0)
-	print("<li>".$lang_mybonus['text_funbox_reward']."</li>");
-print($lang_mybonus['text_howto_get_karma_four']);
-if ($ratiolimit_bonus > 0)
-	print("<li>".$lang_mybonus['text_user_with_ratio_above'].$ratiolimit_bonus.$lang_mybonus['text_and_uploaded_amount_above'].$dlamountlimit_bonus.$lang_mybonus['text_cannot_exchange_uploading']."</li>");
-print($lang_mybonus['text_howto_get_karma_five'].$uploadtorrent_bonus.$lang_mybonus['text_point'].add_s($uploadtorrent_bonus).$lang_mybonus['text_howto_get_karma_six']);
-?>
-</td></tr></table>
-<?php
 }
 
 // Bonus exchange
@@ -597,43 +481,7 @@ if ($action == "exchange") {
             do_log("[LOCKED], $lockName, $lockText");
             nexus_redirect('mybonus.php?do=duplicated');
         }
-		//=== trade for upload
-		if($art == "traffic") {
-			if ($CURUSER['uploaded'] > $dlamountlimit_bonus * 1073741824) {
-                //uploaded amount reach limit
-                if ($CURUSER['downloaded'] > 0) {
-                    $ratio = $CURUSER['uploaded']/$CURUSER['downloaded'];
-                } else {
-                    $ratio = PHP_INT_MAX;
-                }
-            } else {
-                $ratio = 0;
-            }
-			if ($ratiolimit_bonus > 0 && $ratio > $ratiolimit_bonus)
-				die($lang_mybonus['text_cheat_alert']);
-			else {
-			$upload = $CURUSER['uploaded'];
-			$up = $upload + $bonusarray['menge'];
-            do_log(sprintf(
-                "user: %s going to use %s bonus to exchange uploaded from %s to %s",
-                $CURUSER['id'], $points, $CURUSER['uploaded'], $up
-            ));
-//			$bonuscomment = date("Y-m-d") . " - " .$points. " Points for upload bonus.\n " .$bonuscomment;
-//			sql_query("UPDATE users SET uploaded = ".sqlesc($up).", seedbonus = seedbonus - $points, bonuscomment = ".sqlesc($bonuscomment)." WHERE id = ".sqlesc($userid)) or sqlerr(__FILE__, __LINE__);
-            $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_EXCHANGE_UPLOAD, $points. " Points for uploaded.", ['uploaded' => $up]);
-			nexus_redirect("" . get_protocol_prefix() . "$BASEURL/mybonus.php?do=upload");
-			}
-		}
-        if($art == "traffic_downloaded") {
-            $downloaded = $CURUSER['downloaded'];
-            $down = $downloaded + $bonusarray['menge'];
-            do_log(sprintf(
-                "user: %s going to use %s bonus to exchange downloaded from %s to %s",
-                $CURUSER['id'], $points, $CURUSER['downloaded'], $down
-            ));
-            $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_EXCHANGE_DOWNLOAD, $points. " Points for downloaded.", ['downloaded' => $down]);
-            nexus_redirect("" . get_protocol_prefix() . "$BASEURL/mybonus.php?do=download");
-        }
+		//[FORUM EDITION] 上传量/下载量兑换逻辑已移除
 		//=== trade for one month VIP status ***note "SET class = '10'" change "10" to whatever your VIP class number is
 		elseif($art == "class") {
 			if (get_user_class() >= UC_VIP) {
@@ -702,21 +550,15 @@ if ($action == "exchange") {
 				stdfoot();
 				die();
 			}
-			$ratiocharity = $_POST["ratiocharity"];
-			if ($ratiocharity < 0.1 || $ratiocharity > 0.8){
-				stdmsg($lang_mybonus['text_error'], $lang_mybonus['bonus_ratio_not_allowed']);
-				stdfoot();
-				die();
-			}
 			if($CURUSER['seedbonus'] >= $points) {
 				$points2= number_format($points,1);
 //				$bonuscomment = date("Y-m-d") . " - " .$points2. " Points as charity to users with ratio below ".htmlspecialchars(trim($ratiocharity)).".\n " .htmlspecialchars($bonuscomment);
-				$charityReceiverCount = get_row_count("users", "WHERE enabled='yes' AND 10737418240 < downloaded AND $ratiocharity > uploaded/downloaded");
+				$charityReceiverCount = get_row_count("users", "WHERE enabled='yes'");
 				if ($charityReceiverCount) {
 //					sql_query("UPDATE users SET seedbonus = seedbonus - $points, charity = charity + $points, bonuscomment = ".sqlesc($bonuscomment)." WHERE id = ".sqlesc($userid)) or sqlerr(__FILE__, __LINE__);
-                    $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_GIFT_TO_LOW_SHARE_RATIO, $points. " Points as charity to users with ratio below ".htmlspecialchars(trim($ratiocharity)).".", ['charity' => \Nexus\Database\NexusDB::raw("charity + $points"), ]);
+                    $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_GIFT_TO_LOW_SHARE_RATIO, $points. " Points as charity giving.", ['charity' => \Nexus\Database\NexusDB::raw("charity + $points"), ]);
 					$charityPerUser = $points/$charityReceiverCount;
-					sql_query("UPDATE users SET seedbonus = seedbonus + $charityPerUser WHERE enabled='yes' AND 10737418240 < downloaded AND $ratiocharity > uploaded/downloaded") or sqlerr(__FILE__, __LINE__);
+					sql_query("UPDATE users SET seedbonus = seedbonus + $charityPerUser WHERE enabled='yes'") or sqlerr(__FILE__, __LINE__);
 					nexus_redirect("" . get_protocol_prefix() . "$BASEURL/mybonus.php?do=charity");
 				}
 				else

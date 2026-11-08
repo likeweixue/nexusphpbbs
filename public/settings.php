@@ -94,12 +94,11 @@ elseif ($action == 'savesettings_bonus') 	// save bonus
 {
 	stdhead($lang_settings['head_save_bonus_settings']);
 	$validConfig = array(
-	    'donortimes','perseeding','maxseeding','tzero','nzero','bzero','l', 'uploadtorrent','uploadsubtitle','starttopic','makepost',
-        'addcomment','pollvote','offervote', 'funboxvote','saythanks','receivethanks','funboxreward','onegbupload','fivegbupload',
-        'tengbupload', 'ratiolimit','dlamountlimit','oneinvite','customtitle','vipstatus','bonusgift', 'basictax', 'taxpercentage',
+	    'starttopic','makepost',
+        'pollvote', 'saythanks','receivethanks',
+        'oneinvite','customtitle','vipstatus','bonusgift', 'basictax', 'taxpercentage',
         'prolinkpoint', 'prolinktime', 'attendance_initial', 'attendance_step', 'attendance_max', 'cancel_hr', 'attendance_card',
-        'harem_addition', 'hundredgbupload', 'tengbdownload', 'hundredgbdownload', 'official_addition', 'official_tag', 'zero_bonus_tag', 'zero_bonus_factor',
-        'one_tmp_invite', 'rainbow_id', 'change_username_card', 'min_size', 'self_enable'
+        'one_tmp_invite', 'rainbow_id', 'change_username_card', 'self_enable'
     );
 	GetVar($validConfig);
 	$BONUS = [];
@@ -197,7 +196,7 @@ elseif ($action == 'savesettings_security') 	// save security
 {
 	stdhead($lang_settings['head_save_security_settings']);
 	$validConfig = array(
-		'securelogin', 'securetracker', 'https_announce_url','iv','maxip','maxloginattempts','changeemail','cheaterdet','nodetect',
+		'securelogin', 'securetracker', 'https_announce_url','iv','maxip','maxloginattempts','changeemail',
 		'guest_visit_type', 'guest_visit_value_static_page', 'guest_visit_value_custom_content', 'guest_visit_value_redirect',
 		'login_type', 'login_secret_lifetime', 'use_challenge_response_authentication',
 	);
@@ -221,11 +220,9 @@ elseif ($action == 'savesettings_authority') 	// save user authority
 	stdhead($lang_settings['head_save_authority_settings']);
 	$validConfig = array(
 	    'defaultclass','staffmem','newsmanage','newfunitem','funmanage','sbmanage','pollmanage','applylink', 'linkmanage', 'postmanage',
-        'commanage','forummanage','viewuserlist','torrentmanage','torrentsticky', 'torrentonpromotion', 'torrent_hr', 'askreseed', 'viewnfo',
-        'torrentstructure','sendinvite','viewhistory','topten','log','confilog','userprofile', 'torrenthistory','prfmanage', 'cruprfmanage',
-        'uploadsub','delownsub','submanage','updateextinfo', 'viewanonymous','beanonymous','addoffer','offermanage', 'upload','uploadspecial',
-        'view_special_torrent','movetorrent','chrmanage','viewinvite', 'buyinvite','seebanned','againstoffer','userbar', 'torrent-approval',
-        'torrent-delete', 'user-delete', 'user-change-class', 'torrent-set-special-tag', 'torrent-approval-allow-automatic', 'torrent-set-price'
+        'forummanage','viewuserlist','sendinvite','viewhistory','topten','log','confilog','userprofile','prfmanage', 'cruprfmanage',
+        'viewanonymous','beanonymous','chrmanage','viewinvite', 'buyinvite','userbar',
+        'user-delete', 'user-change-class'
     );
 	GetVar($validConfig);
 	$AUTHORITY = [];
@@ -372,7 +369,6 @@ elseif ($action == 'securitysettings')	//security settings
 //	tr($lang_settings['row_https_announce_url'],"<input type='text' style=\"width: 300px\" name=https_announce_url value='".($SECURITY["https_announce_url"] ? $SECURITY["https_announce_url"] : "")."'> ".$lang_settings['text_https_announce_url_note'] . $_SERVER["HTTP_HOST"]."/announce.php", 1);
 	yesorno($lang_settings['row_enable_image_verification'], 'iv', $SECURITY["iv"], $lang_settings['text_image_verification_note']);
 	yesorno($lang_settings['row_allow_email_change'], 'changeemail', $SECURITY["changeemail"], $lang_settings['text_email_change_note']);
-	tr($lang_settings['row_cheater_detection_level'],"<select name='cheaterdet'><option value=0 " . ($SECURITY["cheaterdet"] == 0 ? " selected" : "") . "> ".$lang_settings['select_none']." </option><option value=1 " . ($SECURITY["cheaterdet"] == 1 ? " selected" : "") . "> ".$lang_settings['select_conservative']." </option><option value=2 " . ($SECURITY["cheaterdet"] == 2 ? " selected" : "") . "> ".$lang_settings['select_normal']." </option><option value=3 " . ($SECURITY["cheaterdet"] == 3 ? " selected" : "") . "> ".$lang_settings['select_strict']." </option><option value=4 " . ($SECURITY["cheaterdet"] == 4 ? " selected" : "") . "> ".$lang_settings['select_paranoid']." </option></select> ".$lang_settings['text_cheater_detection_level_note']."<br />".$lang_settings['text_never_suspect'].classlist('nodetect',$AUTHORITY['staffmem'],$SECURITY['nodetect']).$lang_settings['text_or_above'].get_user_class_name(UC_UPLOADER,false,true,true).".", 1);
 	tr($lang_settings['row_max_ips'],"<input type='text' style=\"width: 300px\" name=maxip value='" . ($SECURITY["maxip"] ? $SECURITY["maxip"] : "1")."'> ".$lang_settings['text_max_ips_note'], 1);
 	tr($lang_settings['row_max_login_attemps'],"<input type='text' style=\"width: 300px\" name=maxloginattempts value='" . ($SECURITY["maxloginattempts"] ? $SECURITY["maxloginattempts"] : "7")."'> ".$lang_settings['text_max_login_attemps_note'], 1);
 
@@ -444,53 +440,27 @@ elseif ($action == 'authoritysettings')	//Authority settings
 	tr($lang_settings['row_apply_for_links'], $lang_settings['text_minimum_class'].classlist('applylink',$maxclass,$AUTHORITY['applylink'],0,true).$lang_settings['text_default'].get_user_class_name(UC_USER,false,true,true).$lang_settings['text_apply_for_links_note'],1);
 	tr($lang_settings['row_link_management'], $lang_settings['text_minimum_class'].classlist('linkmanage',$maxclass,$AUTHORITY['linkmanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).$lang_settings['text_link_management_note'],1);
 	tr($lang_settings['row_forum_post_management'], $lang_settings['text_minimum_class'].classlist('postmanage',$maxclass,$AUTHORITY['postmanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_forum_post_management_note'],1);
-	tr($lang_settings['row_comment_management'], $lang_settings['text_minimum_class'].classlist('commanage',$maxclass,$AUTHORITY['commanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_comment_management_note'],1);
 	tr($lang_settings['row_forum_management'], $lang_settings['text_minimum_class'].classlist('forummanage',$maxclass,$AUTHORITY['forummanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).$lang_settings['text_forum_management_note'],1);
 	tr($lang_settings['row_view_userlist'], $lang_settings['text_minimum_class'].classlist('viewuserlist',$maxclass,$AUTHORITY['viewuserlist'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_view_userlist_note'],1);
 	tr(nexus_trans('permission.user-delete.text'), $lang_settings['text_minimum_class'].classlist('user-delete',$maxclass,$AUTHORITY['user-delete'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).nexus_trans('permission.user-delete.desc'),1);
 	tr(nexus_trans('permission.user-change-class.text'), $lang_settings['text_minimum_class'].classlist('user-change-class',$maxclass,$AUTHORITY['user-change-class'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).nexus_trans('permission.user-change-class.desc'),1);
 
-	tr($lang_settings['row_torrent_management'], $lang_settings['text_minimum_class'].classlist('torrentmanage',$maxclass,$AUTHORITY['torrentmanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_torrent_management_note'], 1);
-	tr($lang_settings['row_torrent_delete'], $lang_settings['text_minimum_class'].classlist('torrent-delete',$maxclass,$AUTHORITY['torrent-delete'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).$lang_settings['text_torrent_delete_note'], 1);
 
 
-	tr($lang_settings['row_torrent_sticky'], $lang_settings['text_minimum_class'].classlist('torrentsticky',$maxclass,$AUTHORITY['torrentsticky'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).$lang_settings['text_torrent_sticky_note'],1);
-	tr($lang_settings['row_torrent_on_promotion'], $lang_settings['text_minimum_class'].classlist('torrentonpromotion',$maxclass,$AUTHORITY['torrentonpromotion'] ?? '',0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).$lang_settings['text_torrent_promotion_note'],1);
-	tr($lang_settings['row_torrent_hr'], $lang_settings['text_minimum_class'].classlist('torrent_hr',$maxclass,$AUTHORITY['torrent_hr'] ?? '',0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).$lang_settings['text_torrent_hr_note'],1);
-	tr(nexus_trans('permission.torrent-set-special-tag.text'), $lang_settings['text_minimum_class'].classlist('torrent-set-special-tag',$maxclass,$AUTHORITY['torrent-set-special-tag'] ?? '',0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).nexus_trans('permission.torrent-set-special-tag.desc'),1);
-	tr(nexus_trans('permission.torrent-approval.text'), $lang_settings['text_minimum_class'].classlist('torrent-approval',$maxclass,$AUTHORITY['torrent-approval'] ?? '',0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).nexus_trans('permission.torrent-approval.desc'),1);
-	tr(nexus_trans('permission.torrent-approval-allow-automatic.text'), $lang_settings['text_minimum_class'].classlist('torrent-approval-allow-automatic',$maxclass,$AUTHORITY['torrent-approval-allow-automatic'] ?? '',0,true).$lang_settings['text_default'].get_user_class_name(UC_UPLOADER,false,true,true).nexus_trans('permission.torrent-approval-allow-automatic.desc'),1);
-	tr(nexus_trans('permission.torrent-set-price.text'), $lang_settings['text_minimum_class'].classlist('torrent-set-price',$maxclass,$AUTHORITY['torrent-set-price'] ?? '',0,true).$lang_settings['text_default'].get_user_class_name(UC_UPLOADER,false,true,true).nexus_trans('permission.torrent-set-price.desc'),1);
 
-	tr($lang_settings['row_ask_for_reseed'],  $lang_settings['text_minimum_class'].classlist('askreseed',$maxclass,$AUTHORITY['askreseed'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_ask_for_reseed_note'],1);
-	tr($lang_settings['row_view_nfo'], $lang_settings['text_minimum_class'].classlist('viewnfo',$maxclass,$AUTHORITY['viewnfo'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_view_nfo_note'],1);
-	tr($lang_settings['row_view_torrent_structure'], $lang_settings['text_minimum_class'].classlist('torrentstructure',$maxclass,$AUTHORITY['torrentstructure'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ULTIMATE_USER,false,true,true).$lang_settings['text_view_torrent_structure_note'],1);
 	tr($lang_settings['row_send_invite'], $lang_settings['text_minimum_class'].classlist('sendinvite',$maxclass,$AUTHORITY['sendinvite'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_send_invite_note'],1);
 	tr($lang_settings['row_view_history'], $lang_settings['text_minimum_class'].classlist('viewhistory',$maxclass,$AUTHORITY['viewhistory'],0,true).$lang_settings['text_default'].get_user_class_name(UC_VETERAN_USER,false,true,true).$lang_settings['text_view_history_note'],1);
 	tr($lang_settings['row_view_topten'], $lang_settings['text_minimum_class'].classlist('topten',$maxclass,$AUTHORITY['topten'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_view_topten_note'],1);
 	tr($lang_settings['row_view_general_log'], $lang_settings['text_minimum_class'].classlist('log',$maxclass,$AUTHORITY['log'],0,true).$lang_settings['text_default'].get_user_class_name(UC_INSANE_USER,false,true,true).$lang_settings['text_view_general_log_note'],1);
 	tr($lang_settings['row_view_confidential_log'], $lang_settings['text_minimum_class'].classlist('confilog',$maxclass,$AUTHORITY['confilog'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_view_confidential_log_note'],1);
 	tr($lang_settings['row_view_user_confidential'], $lang_settings['text_minimum_class'].classlist('userprofile',$maxclass,$AUTHORITY['userprofile'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).$lang_settings['text_view_user_confidential_note'],1);
-	tr($lang_settings['row_view_user_torrent'], $lang_settings['text_minimum_class'].classlist('torrenthistory',$maxclass,$AUTHORITY['torrenthistory'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_view_user_torrent_note'],1);
 	tr($lang_settings['row_general_profile_management'],  $lang_settings['text_minimum_class'].classlist('prfmanage',$maxclass,$AUTHORITY['prfmanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_general_profile_management_note'],1);
 	tr($lang_settings['row_crucial_profile_management'], $lang_settings['text_minimum_class'].classlist('cruprfmanage',$maxclass,$AUTHORITY['cruprfmanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_ADMINISTRATOR,false,true,true).$lang_settings['text_crucial_profile_management_note'].get_user_class_name(UC_STAFFLEADER,false,true,true).$lang_settings['text_can_manage_donation'],1);
-	tr($lang_settings['row_upload_subtitle'], $lang_settings['text_minimum_class'].classlist('uploadsub',$maxclass,$AUTHORITY['uploadsub'],0,true).$lang_settings['text_default'].get_user_class_name(UC_USER,false,true,true).$lang_settings['text_upload_subtitle_note'],1);
-	tr($lang_settings['row_delete_own_subtitle'], $lang_settings['text_minimum_class'].classlist('delownsub',$maxclass,$AUTHORITY['delownsub'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_delete_own_subtitle_note'],1);
-	tr($lang_settings['row_subtitle_management'], $lang_settings['text_minimum_class'].classlist('submanage',$maxclass,$AUTHORITY['submanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_subtitle_management'],1);
-	tr($lang_settings['row_update_external_info'], $lang_settings['text_minimum_class'].classlist('updateextinfo',$maxclass,$AUTHORITY['updateextinfo'],0,true).$lang_settings['text_default'].get_user_class_name(UC_EXTREME_USER,false,true,true).$lang_settings['text_update_external_info_note'],1);
 	tr($lang_settings['row_view_anonymous'], $lang_settings['text_minimum_class'].classlist('viewanonymous',$maxclass,$AUTHORITY['viewanonymous'],0,true).$lang_settings['text_default'].get_user_class_name(UC_UPLOADER,false,true,true).$lang_settings['text_view_anonymous_note'],1);
 	tr($lang_settings['row_be_anonymous'], $lang_settings['text_minimum_class'].classlist('beanonymous',$maxclass,$AUTHORITY['beanonymous'],0,true).$lang_settings['text_default'].get_user_class_name(UC_CRAZY_USER,false,true,true).$lang_settings['text_be_anonymous_note'],1);
-	tr($lang_settings['row_add_offer'], $lang_settings['text_minimum_class'].classlist('addoffer',$maxclass,$AUTHORITY['addoffer'],0,true).$lang_settings['text_default'].get_user_class_name(UC_PEASANT,false,true,true).$lang_settings['text_add_offer_note'], 1);
-	tr($lang_settings['row_offer_management'], $lang_settings['text_minimum_class'].classlist('offermanage',$maxclass,$AUTHORITY['offermanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_offer_management_note'],1);
-	tr($lang_settings['row_upload_torrent'], $lang_settings['text_minimum_class'].classlist('upload',$maxclass,$AUTHORITY['upload'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_upload_torrent_note'], 1);
-	tr($lang_settings['row_upload_special_torrent'], $lang_settings['text_minimum_class'].classlist('uploadspecial',$maxclass,$AUTHORITY['uploadspecial'],0,true).$lang_settings['text_default'].get_user_class_name(UC_UPLOADER,false,true,true).$lang_settings['text_upload_special_torrent_note'],1);
-	tr($lang_settings['row_view_special_torrent'], $lang_settings['text_minimum_class'].classlist('view_special_torrent',$maxclass,$AUTHORITY['view_special_torrent'],0,true).$lang_settings['text_default'].get_user_class_name(UC_CRAZY_USER,false,true,true).$lang_settings['text_view_special_torrent_note'],1);
-	tr($lang_settings['row_move_torrent'], $lang_settings['text_minimum_class'].classlist('movetorrent',$maxclass,$AUTHORITY['movetorrent'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_move_torrent_note'],1);
 	tr($lang_settings['row_chronicle_management'], $lang_settings['text_minimum_class'].classlist('chrmanage',$maxclass,$AUTHORITY['chrmanage'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_chronicle_management_note'],1);
 	tr($lang_settings['row_view_invite'], $lang_settings['text_minimum_class'].classlist('viewinvite',$maxclass,$AUTHORITY['viewinvite'],0,true).$lang_settings['text_default'].get_user_class_name(UC_MODERATOR,false,true,true).$lang_settings['text_view_invite_note'],1);
 	tr($lang_settings['row_buy_invites'], $lang_settings['text_minimum_class'].classlist('buyinvite',$maxclass,$AUTHORITY['buyinvite'],0,true).$lang_settings['text_default'].get_user_class_name(UC_INSANE_USER,false,true,true).$lang_settings['text_buy_invites_note'],1);
-	tr($lang_settings['row_see_banned_torrents'], $lang_settings['text_minimum_class'].classlist('seebanned',$maxclass,$AUTHORITY['seebanned'],0,true).$lang_settings['text_default'].get_user_class_name(UC_UPLOADER,false,true,true).$lang_settings['text_see_banned_torrents_note'],1);
-	tr($lang_settings['row_vote_against_offers'], $lang_settings['text_minimum_class'].classlist('againstoffer',$maxclass,$AUTHORITY['againstoffer'],0,true).$lang_settings['text_default'].get_user_class_name(UC_USER,false,true,true).$lang_settings['text_vote_against_offers_note'],1);
 	tr($lang_settings['row_allow_userbar'], $lang_settings['text_minimum_class'].classlist('userbar',$maxclass,$AUTHORITY['userbar'],0,true).$lang_settings['text_default'].get_user_class_name(UC_POWER_USER,false,true,true).$lang_settings['text_allow_userbar_note'],1);
 
 //    tr(nexus_trans('permission.not-counting-downloaded.text'), $lang_settings['text_minimum_class'].classlist('not-counting-downloaded',$maxclass,$AUTHORITY['not-counting-downloaded'] ?? '',0,true).nexus_trans('permission.not-counting-downloaded.desc'),1);
@@ -574,51 +544,22 @@ elseif ($action == 'bonussettings'){
 	stdhead($lang_settings['head_bonus_settings']);
 	print ($notice);
 	print ("<form method='post' action='".$_SERVER["SCRIPT_NAME"]."'><input type='hidden' name='action' value='savesettings_bonus'>");
-	print("<tr><td colspan=2 align=center><b>".$lang_settings['text_bonus_by_seeding']."</b></td></tr>");
-	tr($lang_settings['row_min_size'], $lang_settings['text_bonus_mini_size']."<input type='text' style=\"width: 100px\" name=min_size value='".(isset($BONUS["min_size"]) ? $BONUS["min_size"] : 0 )."'>".$lang_settings['text_bonus_mini_size_help'],1);
-	tr($lang_settings['row_donor_gets_double'], $lang_settings['text_donor_gets']."<input type='text' style=\"width: 50px\" name=donortimes value='".(isset($BONUS["donortimes"]) ? $BONUS["donortimes"] : 2 )."'>".$lang_settings['text_times_as_many'],1);
-	tr($lang_settings['row_basic_seeding_bonus'], $lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=perseeding value='".(isset($BONUS["perseeding"]) ? $BONUS["perseeding"] : 1 )."'>".$lang_settings['text_bonus_points']."<input type='text' style=\"width: 50px\" name=maxseeding value='".(isset($BONUS["maxseeding"]) ? $BONUS["maxseeding"] : 7 )."'>".$lang_settings['text_torrents_default'], 1);
 
-	$formulaLiArr = [];
-	$formulaLiArr[] = "<li>".$lang_settings['text_bonus_formula_two']."</li>";
-	$formulaLiArr[] = "<li>".$lang_settings['text_bonus_formula_three']."<input type='text' style=\"width: 50px\" name=tzero value='".(isset($BONUS["tzero"]) ? $BONUS["tzero"] : 4 )."'>".$lang_settings['text_bonus_formula_four']."</li>";
-	$formulaLiArr[] = "<li>".$lang_settings['text_bonus_formula_five']."</li>";
-	$formulaLiArr[] = "<li>".$lang_settings['text_bonus_formula_six']."<input type='text' style=\"width: 50px\" name=nzero value='".(isset($BONUS["nzero"]) ? $BONUS["nzero"] : 7 )."'>".$lang_settings['text_bonus_formula_seven']."</li>";
-	$formulaLiArr[] = "<li>".$lang_settings['text_bonus_formula_zero_bonus_factor']."<input type='text' style=\"width: 50px\" name=zero_bonus_factor value='".(isset($BONUS["zero_bonus_factor"]) ? $BONUS["zero_bonus_factor"] : 0.2 )."'>".$lang_settings['zero_bonus_factor_default']."</li>";
-	$formulaLiArr[] = "<li>".$lang_settings['text_bonus_formula_eight']."</li>";
-	$formulaLiArr[] = "<li>".$lang_settings['text_bonus_formula_nine']."<input type='text' style=\"width: 50px\" name=bzero value='".(isset($BONUS["bzero"]) ? $BONUS["bzero"] : 100 )."'>".$lang_settings['text_bonus_formula_ten']."</li>";
-	$formulaLiArr[] = "<li>".$lang_settings['text_bonus_formula_eleven']."<input type='text' style=\"width: 50px\" name=l value='".(isset($BONUS["l"]) ? $BONUS["l"] : 300 )."'>".$lang_settings['text_bonus_formula_twelve']."</li>";
-	tr($lang_settings['row_seeding_formula'], $lang_settings['text_bonus_formula_one']."<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;<img src=pic/bonusformulaa.svg title=\"A = sigma( ( 1 - 10 ^ ( - Ti / T0 ) ) * Si * ( 1 + sqrt( 2 ) * 10 ^ ( - ( Ni - 1 ) / ( N0 - 1 ) ) ) * Wi\"><br />&nbsp;&nbsp;&nbsp;&nbsp;<img src=pic/bonusformulab.png alt=\"B = B0 * 2 / pi * arctan( A / L )\" title=\"B = B0 * 2 / pi * arctan( A / L )\"><br />".$lang_settings['text_where']."<ul>".implode("", $formulaLiArr)."</ul>", 1);
 
 	print("<tr><td colspan=2 align=center><b>".$lang_settings['text_misc_ways_get_bonus']."</b></td></tr>");
-	tr($lang_settings['row_uploading_torrent'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=uploadtorrent value='".(isset($BONUS["uploadtorrent"]) ? $BONUS["uploadtorrent"] : 15 )."'>".$lang_settings['text_uploading_torrent_note'], 1);
-	tr($lang_settings['row_uploading_subtitle'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=uploadsubtitle value='".(isset($BONUS["uploadsubtitle"]) ? $BONUS["uploadsubtitle"] : 5 )."'>".$lang_settings['text_uploading_subtitle_note'], 1);
 	tr($lang_settings['row_starting_topic'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=starttopic value='".(isset($BONUS["starttopic"]) ? $BONUS["starttopic"] : 2 )."'>".$lang_settings['text_starting_topic_note'], 1);
 	tr($lang_settings['row_making_post'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=makepost value='".(isset($BONUS["makepost"]) ? $BONUS["makepost"] : 1 )."'>".$lang_settings['text_making_post_note'], 1);
-	tr($lang_settings['row_adding_comment'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=addcomment value='".(isset($BONUS["addcomment"]) ? $BONUS["addcomment"] : 1 )."'>".$lang_settings['text_adding_comment_note'], 1);
 	tr($lang_settings['row_voting_on_poll'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=pollvote value='".(isset($BONUS["pollvote"]) ? $BONUS["pollvote"] : 1 )."'>".$lang_settings['text_voting_on_poll_note'], 1);
-	tr($lang_settings['row_voting_on_offer'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=offervote value='".(isset($BONUS["offervote"]) ? $BONUS["offervote"] : 1 )."'>".$lang_settings['text_voting_on_offer_note'], 1);
 	tr($lang_settings['row_voting_on_funbox'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=funboxvote value='".(isset($BONUS["funboxvote"]) ? $BONUS["funboxvote"] : 1 )."'>".$lang_settings['text_voting_on_funbox_note'], 1);
 	tr($lang_settings['row_saying_thanks'], $lang_settings['text_giver_and_receiver_get']."<input type='text' style=\"width: 50px\" name=saythanks value='".(isset($BONUS["saythanks"]) ? $BONUS["saythanks"] : 0.5 )."'>".$lang_settings['text_saying_thanks_and']."<input type='text' style=\"width: 50px\" name=receivethanks value='".(isset($BONUS["receivethanks"]) ? $BONUS["receivethanks"] : 0 )."'>".$lang_settings['text_saying_thanks_default'], 1);
 	tr($lang_settings['row_funbox_stuff_reward'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=funboxreward value='".(isset($BONUS["funboxreward"]) ? $BONUS["funboxreward"] : 5 )."'>".$lang_settings['text_funbox_stuff_reward_note'], 1);
 	tr($lang_settings['row_promotion_link_click'],$lang_settings['text_user_would_get']."<input type='text' style=\"width: 50px\" name=prolinkpoint value='".(isset($BONUS["prolinkpoint"]) ? $BONUS["prolinkpoint"] : 0 )."'>".$lang_settings['text_promotion_link_note_one']."<input type='text' style=\"width: 50px\" name=prolinktime value='".(isset($BONUS["prolinktime"]) ? $BONUS["prolinktime"] : 600 )."'>".$lang_settings['text_promotion_link_note_two'], 1);
-	tr($lang_settings['row_harem_addition'],$lang_settings['text_user_would_get_by_harem']."<input type='text' style=\"width: 50px\" name=harem_addition value='".(isset($BONUS["harem_addition"]) ? $BONUS["harem_addition"] : 0 )."'>".$lang_settings['text_harem_addition_note'], 1);
-	tr($lang_settings['row_official_addition'],$lang_settings['text_user_would_get_by_official']."<input type='text' style=\"width: 50px\" name=official_addition value='".(isset($BONUS["official_addition"]) ? $BONUS["official_addition"] : 0.5 )."'>".$lang_settings['text_addition_addition_note'], 1);
 
 	$tagRep = new \App\Repositories\TagRepository();
-	tr($lang_settings['row_official_tag'], $tagRep->buildSelect(0,'official_tag', $BONUS["official_tag"] ?? '') . $lang_settings['text_official_tag_note'], 1);
-	tr($lang_settings['row_zero_bonus_tag'], $tagRep->buildSelect(0,'zero_bonus_tag', $BONUS["zero_bonus_tag"] ?? '') . $lang_settings['text_zero_bonus_tag_note'], 1);
 
 	print("<tr><td colspan=2 align=center><b>".$lang_settings['text_things_cost_bonus']."</b></td></tr>");
-	tr($lang_settings['row_one_gb_credit'],$lang_settings['text_it_costs_user']."<input type='text' style=\"width: 50px\" name=onegbupload value='".(isset($BONUS["onegbupload"]) ? $BONUS["onegbupload"] : 300 )."'>".$lang_settings['text_one_gb_credit_note'], 1);
-	tr($lang_settings['row_five_gb_credit'],$lang_settings['text_it_costs_user']."<input type='text' style=\"width: 50px\" name=fivegbupload value='".(isset($BONUS["fivegbupload"]) ? $BONUS["fivegbupload"] : 800 )."'>".$lang_settings['text_five_gb_credit_note'], 1);
-	tr($lang_settings['row_ten_gb_credit'],$lang_settings['text_it_costs_user']."<input type='text' style=\"width: 50px\" name=tengbupload value='".(isset($BONUS["tengbupload"]) ? $BONUS["tengbupload"] : 1200 )."'>".$lang_settings['text_ten_gb_credit_note'], 1);
-	tr($lang_settings['row_hundred_gb_credit'],$lang_settings['text_it_costs_user']."<input type='text' style=\"width: 50px\" name=hundredgbupload value='".(isset($BONUS["hundredgbupload"]) ? $BONUS["hundredgbupload"] : 10000 )."'>".$lang_settings['text_hundred_gb_credit_note'], 1);
-	tr($lang_settings['row_ten_gb_download_credit'],$lang_settings['text_it_costs_user']."<input type='text' style=\"width: 50px\" name=tengbdownload value='".(isset($BONUS["tengbdownload"]) ? $BONUS["tengbdownload"] : 1000 )."'>".$lang_settings['text_ten_gb_download_credit_note'], 1);
-	tr($lang_settings['row_hundred_gb_download_credit'],$lang_settings['text_it_costs_user']."<input type='text' style=\"width: 50px\" name=hundredgbdownload value='".(isset($BONUS["hundredgbdownload"]) ? $BONUS["hundredgbdownload"] : 8000 )."'>".$lang_settings['text_hundred_gb_download_credit_note'], 1);
 
 
-	tr($lang_settings['row_ratio_limit'],$lang_settings['text_user_with_ratio']."<input type='text' style=\"width: 50px\" name=ratiolimit value='".(isset($BONUS["ratiolimit"]) ? $BONUS["ratiolimit"] : 6 )."'>".$lang_settings['text_uploaded_amount_above']."<input type='text' style=\"width: 50px\" name=dlamountlimit value='".(isset($BONUS["dlamountlimit"]) ? $BONUS["dlamountlimit"] : 50 )."'>".$lang_settings['text_ratio_limit_default'], 1);
 	tr($lang_settings['row_buy_an_invite'],$lang_settings['text_it_costs_user']."<input type='text' style=\"width: 50px\" name=oneinvite value='".(isset($BONUS["oneinvite"]) ? $BONUS["oneinvite"] : 1000 )."'>".$lang_settings['text_buy_an_invite_note'], 1);
 	tr($lang_settings['row_buy_an_tmp_invite'],$lang_settings['text_it_costs_user']."<input type='text' style=\"width: 50px\" name=one_tmp_invite value='".(isset($BONUS["one_tmp_invite"]) ? $BONUS["one_tmp_invite"] : \App\Models\BonusLogs::DEFAULT_BONUS_BUY_TEMPORARY_INVITE )."'>".$lang_settings['text_buy_an_tmp_invite_note'], 1);
 
@@ -907,7 +848,7 @@ JS;
 	tr($lang_settings['row_site_logo'],"<input type='text' style=\"width: 100px\" name='logo' value='".($MAIN["logo"] ? $MAIN["logo"] : "")."'>".$lang_settings['text_site_logo_note'], 1);
 	
 	
-	tr($lang_settings['row_cleanup_interval'], $lang_settings['text_cleanup_interval_note_one']."<br /><ul><li>".$lang_settings['text_priority_one']."<input type='text' style=\"width: 100px\" name=autoclean_interval_one value='".($MAIN["autoclean_interval_one"] ? $MAIN["autoclean_interval_one"] : 900)."'> ".$lang_settings['text_priority_one_note']."</li><li>".$lang_settings['text_priority_two']."<input type='text' style=\"width: 100px\" name=autoclean_interval_two value='".($MAIN["autoclean_interval_two"] ? $MAIN["autoclean_interval_two"] : 1800)."'> ".$lang_settings['text_priority_two_note']."</li><li>".$lang_settings['text_priority_three']."<input type='text' style=\"width: 100px\" name=autoclean_interval_three value='".($MAIN["autoclean_interval_three"] ? $MAIN["autoclean_interval_three"] : 3600)."'> ".$lang_settings['text_priority_three_note']."</li><li>".$lang_settings['text_priority_four']."<input type='text' style=\"width: 100px\" name=autoclean_interval_four value='".($MAIN["autoclean_interval_four"] ? $MAIN["autoclean_interval_four"] : 43200)."'> ".$lang_settings['text_priority_four_note']."</li><li>".$lang_settings['text_priority_five']."<input type='text' style=\"width: 100px\" name=autoclean_interval_five value='".($MAIN["autoclean_interval_five"] ? $MAIN["autoclean_interval_five"] : 648000)."'> ".$lang_settings['text_priority_five_note']."</li></ul>".$lang_settings['text_cleanup_interval_note_two'], 1);
+	print("<tr><td class='rowhead nowrap' valign='top' align='right'>".$lang_settings['row_cleanup_interval']."</td><td class='rowfollow' valign='top' align='left'><ul><li>".$lang_settings['text_priority_four']."<input type='text' style=\"width: 100px\" name=autoclean_interval_four value='".($MAIN["autoclean_interval_four"] ? $MAIN["autoclean_interval_four"] : 43200)."'> ".$lang_settings['text_priority_four_note']."</li><li>".$lang_settings['text_priority_five']."<input type='text' style=\"width: 100px\" name=autoclean_interval_five value='".($MAIN["autoclean_interval_five"] ? $MAIN["autoclean_interval_five"] : 648000)."'> ".$lang_settings['text_priority_five_note']."</li></ul>".$lang_settings['text_cleanup_interval_note_two']."</td></tr>");
 	tr($lang_settings['row_signup_timeout'],"<input type='text' style=\"width: 100px\" name=signup_timeout value='".($MAIN["signup_timeout"] ? $MAIN["signup_timeout"] : 259200)."'> ".$lang_settings['text_signup_timeout_note'], 1);
 	
 	

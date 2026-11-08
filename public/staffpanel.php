@@ -27,7 +27,14 @@ if (get_user_class() >= UC_SYSOP) {
 	echo("<td class=colhead align=left>" . ($lang_staffpanel["Option Name"] ?? 'Option Name') . "</td><td class=colhead align=left>" . ($lang_staffpanel["Info"] ?? 'Info') . "</td>");
 	$query = "SELECT * FROM sysoppanel";
 	$sql = sql_query($query);
+	$sysopRows = [];
 	while ($row = mysql_fetch_array($sql)) {
+		$sysopRows[] = $row;
+	}
+	$menuName = $isChineseStaff ? '菜单栏设置' : 'Menu Settings';
+	$menuInfo = $isChineseStaff ? '增加、减少、调整网站的菜单' : 'Add, remove or reorder site menus';
+	$menuRowPrinted = false;
+	foreach ($sysopRows as $row) {
 		$id = $row['id'];
 		$name = $lang_staffpanel[$row['name']] ?? $row['name'];
 		$url = $row['url'];
@@ -35,10 +42,12 @@ if (get_user_class() >= UC_SYSOP) {
 
 		echo("<tr><td class=rowfollow align=left><strong><a href=$url>$name</a></strong></td> <td class=rowfollow align=left>$info</td></tr>");
 		if ($row['url'] === 'increment-bulk.php') {
-			$menuName = $isChineseStaff ? '菜单栏设置' : 'Menu Settings';
-			$menuInfo = $isChineseStaff ? '增加、减少、调整网站的菜单' : 'Add, remove or reorder site menus';
 			echo("<tr><td class=rowfollow align=left><strong><a href=custommenu.php>$menuName</a></strong></td> <td class=rowfollow align=left>$menuInfo</td></tr>");
+			$menuRowPrinted = true;
 		}
+	}
+	if (!$menuRowPrinted) {
+		echo("<tr><td class=rowfollow align=left><strong><a href=custommenu.php>$menuName</a></strong></td> <td class=rowfollow align=left>$menuInfo</td></tr>");
 	}
 	print("</table>");
 	print("<br />");

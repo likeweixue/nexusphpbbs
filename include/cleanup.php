@@ -292,15 +292,7 @@ function docleanup($forceAll = 0, $printProgress = false) {
 	do_log("start docleanup(), forceAll: $forceAll, printProgress: $printProgress, now: $now, " . date('Y-m-d H:i:s', $now));
 
 //Priority Class 1: cleanup every 15 mins
-//2.update peer status
-	$deadtime = deadtime();
-	$deadtime = date("Y-m-d H:i:s",$deadtime);
-	sql_query("DELETE FROM peers WHERE last_action < ".sqlesc($deadtime)) or sqlerr(__FILE__, __LINE__);
-	$log = 'update peer status';
-	do_log($log);
-	if ($printProgress) {
-		printProgress($log);
-	}
+//[FORUM EDITION] peer status / seeding bonus 已移除，此处不再清理 peers
 //11.calculate seeding bonus
 //	$res = sql_query("SELECT DISTINCT userid FROM peers WHERE seeder = 'yes'") or sqlerr(__FILE__, __LINE__);
 //	if (mysql_num_rows($res) > 0)
@@ -339,17 +331,7 @@ function docleanup($forceAll = 0, $printProgress = false) {
 //		}
 //	}
 
-    //rest seed_points_per_hour
-    $seedPointsUpdatedAtMin = $carbonNow->subSeconds(2*intval($autoclean_interval_one))->toDateTimeString();
-    sql_query("update users set seed_points_per_hour = 0, seed_bonus_per_hour = 0, seeding_torrent_count = 0, seeding_torrent_size = 0 where seed_points_updated_at < " . sqlesc($seedPointsUpdatedAtMin));
-
-	\App\Repositories\CleanupRepository::runBatchJobCalculateUserSeedBonus($requestId);
-
-	$log = 'calculate seeding bonus';
-	do_log($log);
-	if ($printProgress) {
-		printProgress($log);
-	}
+    //[FORUM EDITION] 做种魔力值相关逻辑已移除
 
 //Priority Class 2: cleanup every 30 mins
 	$res = sql_query("SELECT value_u FROM avps WHERE arg = 'lastcleantime2'");
@@ -369,81 +351,10 @@ function docleanup($forceAll = 0, $printProgress = false) {
 		sql_query("UPDATE avps SET value_u = ".sqlesc($now)." WHERE arg='lastcleantime2'") or sqlerr(__FILE__, __LINE__);
 	}
 
-	//2.5.update torrents' visibility
-	$deadtime = deadtime() - $max_dead_torrent_time;
-    $lastActionDeadTime = date("Y-m-d H:i:s",$deadtime);
-	sql_query("UPDATE torrents SET visible='no' WHERE visible='yes' AND last_action < '$lastActionDeadTime' AND seeders=0") or sqlerr(__FILE__, __LINE__);
-	$log = "update torrents' visibility";
-	do_log($log);
-	if ($printProgress) {
-		printProgress($log);
-	}
+	//[FORUM EDITION] torrent visibility 清理已移除
 
-//Priority Class 3: cleanup every 60 mins
-	$res = sql_query("SELECT value_u FROM avps WHERE arg = 'lastcleantime3'");
-	$row = mysql_fetch_array($res);
-	if (!$row && !$forceAll) {
-		sql_query("INSERT INTO avps (arg, value_u) VALUES ('lastcleantime3',$now)") or sqlerr(__FILE__, __LINE__);
-		$log = "no value for arg: 'lastcleantime3', return";
-		do_log($log);
-		return $log;
-	}
-	$ts = $row[0] ?? 0;
-	if ($ts + $autoclean_interval_three > $now && !$forceAll) {
-		$log = 'Cleanup ends at Priority Class 2';
-		do_log($log . ", $ts + $autoclean_interval_three > $now");
-		return $log;
-	} else {
-		sql_query("UPDATE avps SET value_u = ".sqlesc($now)." WHERE arg='lastcleantime3'") or sqlerr(__FILE__, __LINE__);
-	}
+	//[FORUM EDITION] 种子计数、促销、置顶、热门挑选等已移除，只保留论坛数据统计
 
-	//4.update count of seeders, leechers, comments for torrents
-//	$torrents = array();
-//	$res = sql_query("SELECT torrent, seeder, COUNT(*) AS c FROM peers GROUP BY torrent, seeder") or sqlerr(__FILE__, __LINE__);
-//	while ($row = mysql_fetch_assoc($res)) {
-//		if ($row["seeder"] == "yes")
-//		$key = "seeders";
-//		else
-//		$key = "leechers";
-//		$torrents[$row["torrent"]][$key] = $row["c"];
-//	}
-//
-//	$res = sql_query("SELECT torrent, COUNT(*) AS c FROM comments GROUP BY torrent") or sqlerr(__FILE__, __LINE__);
-//	while ($row = mysql_fetch_assoc($res)) {
-//		$torrents[$row["torrent"]]["comments"] = $row["c"];
-//	}
-//
-//	$fields = explode(":", "comments:leechers:seeders");
-//	$res = sql_query("SELECT id, seeders, leechers, comments FROM torrents") or sqlerr(__FILE__, __LINE__);
-//	while ($row = mysql_fetch_assoc($res)) {
-//		$id = $row["id"];
-//		$torr = $torrents[$id] ?? [];
-//		foreach ($fields as $field) {
-//			if (!isset($torr[$field]))
-//			$torr[$field] = 0;
-//		}
-//		$update = array();
-//		foreach ($fields as $field) {
-//			if ($torr[$field] != $row[$field])
-//			$update[] = "$field = " . $torr[$field];
-//		}
-//		if (count($update))
-//		sql_query("UPDATE torrents SET " . implode(",", $update) . " WHERE id = $id") or sqlerr(__FILE__, __LINE__);
-//	}
-
-    \App\Repositories\CleanupRepository::runBatchJobUpdateTorrentSeedersEtc($requestId);
-
-	$log = "update count of seeders, leechers, comments for torrents";
-	do_log($log);
-	if ($printProgress) {
-		printProgress($log);
-	}
-
-	//set no-advertisement-by-bonus time out
-	sql_query("UPDATE users SET noad='no' WHERE noaduntil < ".sqlesc(date("Y-m-d H:i:s")).($enablenoad_advertisement == 'yes' ? " AND class < ".sqlesc($noad_advertisement) : ""));
-	if ($printProgress) {
-		printProgress("set no-advertisement-by-bonus time out");
-	}
 	//12. update forum post/topic count
 	$forums = sql_query("select id from forums") or sqlerr(__FILE__, __LINE__);
 	while ($forum = mysql_fetch_assoc($forums))
@@ -463,107 +374,6 @@ function docleanup($forceAll = 0, $printProgress = false) {
 	$Cache->delete_value('forums_list');
 	$log = "update forum post/topic count";
 	do_log($log);
-	if ($printProgress) {
-		printProgress($log);
-	}
-	//14.cleanup offers
-	//Delete offers if not voted on after some time
-	if($offervotetimeout_main){
-		$secs = (int)$offervotetimeout_main;
-		$dt = sqlesc(date("Y-m-d H:i:s",(TIMENOW - ($offervotetimeout_main))));
-		$res = sql_query("SELECT id, name FROM offers WHERE added < $dt AND allowed <> 'allowed'") or sqlerr(__FILE__, __LINE__);
-		while($arr = mysql_fetch_assoc($res)){
-		sql_query("DELETE FROM offers WHERE id={$arr['id']}") or sqlerr(__FILE__, __LINE__);
-		sql_query("DELETE FROM offervotes WHERE offerid={$arr['id']}") or sqlerr(__FILE__, __LINE__);
-		sql_query("DELETE FROM comments WHERE offer={$arr['id']}") or sqlerr(__FILE__, __LINE__);
-		write_log("Offer {$arr['id']} ({$arr['name']}) was deleted by system (vote timeout)",'normal');
-		}
-	}
-	$log = "delete offers if not voted on after some time";
-	do_log($log);
-	if ($printProgress) {
-		printProgress($log);
-	}
-
-	//Delete offers if not uploaded after being voted on for some time.
-	if($offeruptimeout_main){
-		$secs = (int)$offeruptimeout_main;
-		$dt = sqlesc(date("Y-m-d H:i:s",(TIMENOW - ($secs))));
-		$res = sql_query("SELECT id, name FROM offers WHERE allowedtime < $dt AND allowed = 'allowed'") or sqlerr(__FILE__, __LINE__);
-		while($arr = mysql_fetch_assoc($res)){
-		sql_query("DELETE FROM offers WHERE id={$arr['id']}") or sqlerr(__FILE__, __LINE__);
-		sql_query("DELETE FROM offervotes WHERE offerid={$arr['id']}") or sqlerr(__FILE__, __LINE__);
-		sql_query("DELETE FROM comments WHERE offer={$arr['id']}") or sqlerr(__FILE__, __LINE__);
-		write_log("Offer {$arr['id']} ({$arr['name']}) was deleted by system (upload timeout)",'normal');
-		}
-	}
-	$log = "delete offers if not uploaded after being voted on for some time.";
-	do_log($log);
-	if ($printProgress) {
-		printProgress($log);
-	}
-
-	//15.cleanup torrents
-	//Start: expire torrent promotion
-	if ($expirehalfleech_torrent)
-		torrent_promotion_expire($expirehalfleech_torrent, 5, $halfleechbecome_torrent);
-	if ($expirefree_torrent)
-		torrent_promotion_expire($expirefree_torrent, 2, $freebecome_torrent);
-	if ($expiretwoup_torrent)
-		torrent_promotion_expire($expiretwoup_torrent, 3, $twoupbecome_torrent);
-	if ($expiretwoupfree_torrent)
-		torrent_promotion_expire($expiretwoupfree_torrent, 4, $twoupfreebecome_torrent);
-	if ($expiretwouphalfleech_torrent)
-		torrent_promotion_expire($expiretwouphalfleech_torrent, 6, $twouphalfleechbecome_torrent);
-	if ($expirethirtypercentleech_torrent)
-		torrent_promotion_expire($expirethirtypercentleech_torrent, 7, $thirtypercentleechbecome_torrent);
-	if ($expirenormal_torrent)
-		torrent_promotion_expire($expirenormal_torrent, 1, $normalbecome_torrent);
-
-	//expire individual torrent promotion
-//	sql_query("UPDATE torrents SET sp_state = 1, promotion_time_type=0, promotion_until=null WHERE promotion_time_type=2 AND promotion_until < ".sqlesc(date("Y-m-d H:i:s",TIMENOW))) or sqlerr(__FILE__, __LINE__);
-    torrent_promotion_individual_expire();
-	//End: expire torrent promotion
-	$log = "expire torrent promotion";
-	do_log($log);
-	if ($printProgress) {
-		printProgress($log);
-	}
-
-	//expire torrent sticky
-    $toBeExpirePosStates = [
-        \App\Models\Torrent::POS_STATE_STICKY_FIRST,
-        \App\Models\Torrent::POS_STATE_STICKY_SECOND,
-    ];
-	$update = [
-	    'pos_state' => \App\Models\Torrent::POS_STATE_STICKY_NONE,
-        'pos_state_until' => null,
-    ];
-    \App\Models\Torrent::query()
-        ->whereIn('pos_state', $toBeExpirePosStates)
-        ->whereNotNull('pos_state_until')
-        ->where('pos_state_until', '<', now())
-        ->update($update);
-    $log = "expire torrent pos state";
-    do_log($log);
-    if ($printProgress) {
-        printProgress($log);
-    }
-
-
-	//automatically pick hot
-	if ($hotdays_torrent)
-	{
-		$secs = (int)($hotdays_torrent * 86400); //XX days
-		$dt = sqlesc(date("Y-m-d H:i:s",(TIMENOW - ($secs))));
-		sql_query("UPDATE torrents SET picktype = 'hot' WHERE added > $dt AND picktype = 'normal' AND seeders > ".sqlesc($hotseeder_torrent)) or sqlerr(__FILE__, __LINE__);
-	}
-	if ($printProgress) {
-		$log = "automatically pick hot";
-		do_log($log);
-		printProgress($log);
-	}
-
 
 //Priority Class 4: cleanup every 24 hours
 	$res = sql_query("SELECT value_u FROM avps WHERE arg = 'lastcleantime4'");
