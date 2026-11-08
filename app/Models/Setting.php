@@ -48,6 +48,10 @@ class Setting
      */
     public static function getFromDb($name = null, $default = null): mixed
     {
+        //安装前 settings 表可能还不存在，返回空数组让流程继续
+        if (!NexusDB::hasTable('settings')) {
+            return is_null($name) ? [] : $default;
+        }
         $rows = NexusDB::select("select name, value from settings where autoload = 'yes'");
         $result = [];
         foreach ($rows as $row) {
@@ -69,6 +73,9 @@ class Setting
      */
     public static function getByName($name, $default = null): mixed
     {
+        if (!NexusDB::hasTable('settings')) {
+            return $default;
+        }
         $result = NexusDB::getOne('settings', 'name = ' . sqlesc($name));
         if ($result) {
             return self::normalizeValue($result);
@@ -114,7 +121,7 @@ class Setting
 
     public static function getDefaultLang(): string
     {
-        return self::get("main.defaultlang");
+        return (string)(self::get("main.defaultlang") ?? 'en');
     }
 
     public static function getIsPTGenEnabled(): bool
@@ -227,7 +234,7 @@ class Setting
 
     public static function getSiteName(): string
     {
-        return self::get("basic.SITENAME");
+        return (string)(self::get("basic.SITENAME") ?? 'NexusPHP');
     }
 
     public static function getTorrentSaveDir(): string
