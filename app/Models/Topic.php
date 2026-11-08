@@ -5,9 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Topic extends NexusModel
+class Topic extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'topics';
 
     protected $fillable = ['userid', 'subject', 'locked', 'forumid', 'firstpost', 'lastpost', 'sticky', 'hlcolor', 'views'];
 

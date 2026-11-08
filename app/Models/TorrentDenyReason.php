@@ -5,11 +5,10 @@ namespace App\Models;
 use App\Models\Traits\NexusActivityLogTrait;
 use Nexus\Database\NexusDB;
 
-class TorrentDenyReason extends NexusModel
+class TorrentDenyReason extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'torrent_deny_reasons';
+    public static string $table = 'torrent_deny_reasons';
 
     public $timestamps = true;
 

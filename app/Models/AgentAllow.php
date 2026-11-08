@@ -5,11 +5,10 @@ namespace App\Models;
 use App\Enums\ModelEventEnum;
 use App\Models\Traits\NexusActivityLogTrait;
 
-class AgentAllow extends NexusModel
+class AgentAllow extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'agent_allowed_family';
+    public static string $table = 'agent_allowed_family';
 
     protected $fillable = [
         'family', 'start_name', 'exception', 'allowhttps', 'comment',
@@ -38,10 +37,6 @@ class AgentAllow extends NexusModel
         });
     }
 
-    public function denies(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(AgentDeny::class, 'family_id');
-    }
 
 
 }

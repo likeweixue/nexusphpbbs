@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-class LoginLog extends NexusModel
+class LoginLog extends ModelTable
 {
+    public static string $table = 'login_logs';
+
     public $timestamps = true;
 
     protected $fillable = [

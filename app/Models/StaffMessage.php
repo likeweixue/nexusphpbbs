@@ -5,9 +5,9 @@ namespace App\Models;
 use App\Repositories\ToolRepository;
 use Google\Service\Testing\ToolResultsExecution;
 
-class StaffMessage extends NexusModel
+class StaffMessage extends ModelTable
 {
-    protected $table = 'staffmessages';
+    public static string $table = 'staffmessages';
 
     protected $fillable = [
         'sender', 'added', 'subject', 'msg', 'answeredby', 'answered', 'answer', 'permission',

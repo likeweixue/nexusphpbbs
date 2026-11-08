@@ -1,13 +1,13 @@
-# NexusPHP 论坛版（去种子功能 · 免 Redis · 免 Composer）
+# NexusPHP 论坛版（去种子功能 · 零依赖 · 免 Redis · 免 Composer · 免 vendor）
 
 本目录是基于 **NexusPHP 1.10.2** 的论坛版代码，已按需求做了以下调整：
 
 - **移除种子上传 / 下载 / Tracker 相关入口**（保留论坛、用户、消息、勋章、签到、考核、管理后台等原有功能与页面布局）。
 - **不再需要 Redis**：缓存、会话、限流、定时任务锁全部改为 PHP 文件缓存，数据库只需要 MySQL。
-- **不需要在服务器上执行 `composer install`**：`vendor/` 已随包提供，并已剔除开发依赖（phpunit、faker、mockery、laravel-lang 等）。
-- 安装向导已简化：只填写 **MySQL 连接信息 + 时区**，其余自动完成。
+- **0.2.0 起不再包含 `vendor/`**：程序已改写为纯 PHP + MySQL，不需要 Composer、不需要 Laravel、不需要 Node.js。
+- 安装向导已简化：只填写 **MySQL 连接信息 + 时区**，建表与初始数据由内置 SQL 脚本 `database/install/schema.sql`、`data.sql` 完成。
 
-> 重要：`vendor/` 不能删除。Laravel 框架本身、Filament 管理后台、Livewire 等全部位于 `vendor/` 中，删除后程序无法启动。这里的“免依赖”是指**服务器上不需要安装 Composer、不需要联网下载依赖**，而不是不需要这个目录。
+> 重要：0.2.0 是**零依赖版本**——包里没有 `vendor/`，也不需要安装 Composer。上传后即可运行，唯一要求是 PHP 8.1+ 与 MySQL 5.7.8+。
 
 ---
 
@@ -207,13 +207,24 @@ QUEUE_CONNECTION=sync
 
 ---
 
+## 四之二、版本与分支说明
+
+| 分支 | 版本 | 说明 |
+| --- | --- | --- |
+| `zero-dependency` | 0.2.x | 零依赖版（当前）：纯 PHP + MySQL，不含 `vendor/`，没有 Filament 后台 / API / 插件商店 |
+| `main` | 0.1.x（停在 0.1.7） | 带 `vendor/` 的完整版：保留 Filament 管理后台、REST API/OAuth、插件商店 |
+
+- 常规页面功能（论坛、用户、消息、签到、魔力、勋章、任务、后台列表等）只在 `zero-dependency` 分支维护；
+- 需要后台/API/插件的场景请使用 `main` 分支的 0.1.7 存档或相应 tag；
+- 两个分支的数据库结构一致，切换时无需改库。
+
 ## 五、与原版 1.10.2 的主要差异
 
 | 项目 | 原版 | 本版本 |
 | --- | --- | --- |
 | Redis | 必需 | 不需要，文件缓存替代 |
 | Horizon 队列面板 | 需要 Redis | 已移除 |
-| Composer 依赖 | 需自行 `composer install` | `vendor/` 已内置（仅生产依赖） |
+| Composer 依赖 | 需自行 `composer install` | **不需要**，0.2.0 不含 `vendor/` |
 | 安装向导 | 需填 Redis 信息、检查 Redis 版本 | 只需 MySQL + 时区 |
 | 队列 | Redis + Horizon Worker | `sync` 同步执行，无需 Supervisor |
 | 种子功能 | 完整 PT | 已移除入口 |
@@ -238,18 +249,18 @@ chown -R www:www /www/wwwroot/nexusphp-bbs
 chmod -R 775 storage bootstrap/cache attachments bitbucket
 ```
 
-**3. 管理后台样式丢失 / 404**
+**3. 管理后台打不开**
 
-伪静态没有配置好。确认 `location /` 的 `try_files` 指向 `/nexus.php?$query_string`，并且站点根目录是 `public/`。
+0.2.0 已移除 Filament 后台（`/nexusphp`）。管理功能请使用顶部 `[管理系统]`（`controlcenter.php`）与 `[管理组面板]`（`staffpanel.php`）。
 
 **4. 安装后想重新安装**
 
 删除项目根目录的 `dont_delete_install.lock` 和 `.env`，再访问 `/install/install.php`。  
 （请先备份数据库，重新安装会重建表。）
 
-**5. 为什么还有 `vendor`，能不能删？**
+**5. 还需要 `vendor` / Composer / Laravel 吗？**
 
-不能。Laravel、Filament、Livewire 等框架代码都在 `vendor/` 里。本版本已经把开发依赖删掉，并保证**上传即可运行，不需要 Composer**。
+不需要。0.2.0 已把程序改写为纯 PHP + MySQL，包里没有 `vendor/`，也不会加载任何 Laravel 代码。数据库访问、配置、翻译、日期处理都由 `nexus/` 下的自写组件完成。
 
 **6. 登录按钮点击没反应 / 登录后没跳转**
 

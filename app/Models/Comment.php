@@ -3,10 +3,11 @@
 namespace App\Models;
 
 
-use Illuminate\Database\Eloquent\Builder;
 
-class Comment extends NexusModel
+class Comment extends ModelTable
 {
+    public static string $table = 'comments';
+
     protected $casts = [
         'added' => 'datetime',
         'editdate' => 'datetime',

@@ -5,7 +5,7 @@ use App\Models\Attendance;
 use App\Models\AttendanceLog;
 use App\Models\Setting;
 use App\Models\User;
-use Carbon\Carbon;
+use App\Support\Carbon;
 use Nexus\Database\NexusDB;
 
 class AttendanceRepository extends BaseRepository
@@ -29,7 +29,8 @@ class AttendanceRepository extends BaseRepository
         if (!$attendance) {
             //first time
             do_log("[DO_INSERT]: " . nexus_json_encode($initialData));
-            $attendance = Attendance::query()->create($initialData);
+            $attendanceId = NexusDB::insert('attendance', $initialData);
+            $attendance = (object)array_merge($initialData, ['id' => $attendanceId]);
         } else {
             $added = $attendance->added->startOfDay();
             do_log("[ORIGINAL_DATA]: " . $attendance->toJson());
@@ -55,11 +56,12 @@ class AttendanceRepository extends BaseRepository
                     $update['total_days'] = $attendance->total_days + 1;
                 }
                 do_log("[DO_UPDATE]: " . nexus_json_encode($update));
-                $attendance->update($update);
+                NexusDB::update('attendance', $update, 'id = ' . sqlesc($attendance->id));
+                foreach ($update as $k => $v) { $attendance->{$k} = $v; }
             }
         }
         if ($isUpdated) {
-            User::query()->where('id', $uid)->increment('seedbonus', $update['points']);
+            NexusDB::statement('update users set seedbonus = seedbonus + ' . intval($update['points']) . ' where id = ' . sqlesc($uid));
             $attendanceLog = [
                 'uid' => $attendance->uid,
                 'points' => $update['points'],
@@ -67,14 +69,15 @@ class AttendanceRepository extends BaseRepository
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
-            AttendanceLog::query()->insert($attendanceLog);
+            NexusDB::insert('attendance_logs', $attendanceLog);
         }
         $attendance->added_time = $now->toTimeString();
         $attendance->is_updated = $isUpdated;
-        $baseQuery = AttendanceLog::query()->where('date', $today->format('Y-m-d'));
-        $attendance->today_counts = (clone $baseQuery)->count();
-        $myId = (clone $baseQuery)->where('uid', $uid)->first(['id'])->id;
-        $attendance->my_ranking = (clone $baseQuery)->where('id', '<=', $myId)->count();
+        $todayStr = $today->format('Y-m-d');
+        $attendance->today_counts = intval(get_row_count('attendance_logs', 'WHERE date = ' . sqlesc($todayStr)));
+        $myLog = NexusDB::getOne('attendance_logs', 'date = ' . sqlesc($todayStr) . ' and uid = ' . sqlesc($uid), 'id');
+        $myId = intval($myLog['id'] ?? 0);
+        $attendance->my_ranking = $myId ? intval(get_row_count('attendance_logs', 'WHERE date = ' . sqlesc($todayStr) . ' AND id <= ' . sqlesc($myId))) : 0;
         do_log("[FINAL_ATTENDANCE]: " . $attendance->toJson());
         return $attendance;
 
@@ -82,14 +85,17 @@ class AttendanceRepository extends BaseRepository
 
     public function getAttendance($uid, $date = '')
     {
-        $query = Attendance::query()
-            ->where('uid', $uid)
-            ->orderBy('id', 'desc');
+        $sql = 'select * from attendance where uid = ' . sqlesc($uid);
         if (!empty($date)) {
-            $query->where('added', '>=', Carbon::parse($date)->startOfDay())
-                ->where('added', '<=', Carbon::parse($date)->endOfDay());
+            $sql .= ' and added >= ' . sqlesc(Carbon::parse($date)->startOfDay()->toDateTimeString())
+                . ' and added <= ' . sqlesc(Carbon::parse($date)->endOfDay()->toDateTimeString());
         }
-        return $query->first();
+        $row = NexusDB::getOne('attendance', substr($sql, strlen('select * from attendance where ')));
+        if (!$row) {
+            return null;
+        }
+        $row['added'] = new Carbon($row['added'] ?? 'now');
+        return (object)$row;
     }
 
     public function getContinuousPoints($days)
@@ -166,7 +172,7 @@ class AttendanceRepository extends BaseRepository
      */
     public function cleanup(): int
     {
-        $query = Attendance::query()->groupBy('uid')->havingRaw("count(*) > 1")->selectRaw('uid, max(id) as max_id');
+        $query = NexusDB::table('attendance')->selectRaw('uid, max(id) as max_id')->groupBy('uid')->havingRaw('count(*) > 1');
         $page = 1;
         $size = 10000;
         $deleteCounts = 0;
@@ -181,7 +187,7 @@ class AttendanceRepository extends BaseRepository
             }
             foreach ($rows as $row) {
                 do {
-                    $deleted = Attendance::query()
+                    $deleted = NexusDB::table('attendance')
                         ->where('uid', $row->uid)
                         ->where('id', '<', $row->max_id)
                         ->limit(10000)
@@ -213,8 +219,8 @@ class AttendanceRepository extends BaseRepository
         $table = 'attendance_logs';
         while (true) {
             $logPrefix = "[MIGRATE_ATTENDANCE_LOGS], page: $page, size: $size";
-            $query = Attendance::query()
-                ->where('added', '>=', Carbon::yesterday())
+            $query = NexusDB::table('attendance')
+                ->where('added', '>=', Carbon::yesterday()->toDateTimeString())
                 ->forPage($page, $size);
             if ($uid) {
                 $query->where('uid', $uid);
@@ -227,7 +233,7 @@ class AttendanceRepository extends BaseRepository
             }
             foreach ($result as $row) {
                 $interval =\DateInterval::createFromDateString("-1 day");
-                $period = new \DatePeriod($row->added->addDay(1), $interval, $row->days, \DatePeriod::EXCLUDE_START_DATE);
+                $period = new \DatePeriod(new \DateTime((string)$row->added), $interval, max(1, (int)$row->days), \DatePeriod::EXCLUDE_START_DATE);
                 $i = 0;
                 foreach ($period as $periodValue) {
                     $insert[] = sprintf(
@@ -257,19 +263,22 @@ class AttendanceRepository extends BaseRepository
     public function getContinuousDays(Attendance $attendance, $start): int
     {
         $start = Carbon::parse($start);
-        $logQuery = $attendance->logs()->where('date', '<=', $start->format('Y-m-d'))->orderBy('date', 'desc');
-        $attendanceLogs = $logQuery->get(['date'])->keyBy('date');
-        $counts = $attendanceLogs->count();
+        $attendanceLogs = NexusDB::table('attendance_logs')
+            ->where('uid', $attendance->uid)
+            ->where('date', '<=', $start->format('Y-m-d'))
+            ->orderBy('date', 'desc')
+            ->pluck('date', 'date');
+        $counts = count($attendanceLogs);
         do_log(sprintf('user: %s, log counts: %s from query: %s', $attendance->uid, $counts, last_query()));
         if ($counts == 0) {
             return 0;
         }
         $interval =\DateInterval::createFromDateString("-1 day");
-        $period = new \DatePeriod($start->clone()->addDay(1), $interval, $counts, \DatePeriod::EXCLUDE_START_DATE);
+        $period = new \DatePeriod(new \DateTime($start->addDay(1)->toDateTimeString()), $interval, max(1, $counts), \DatePeriod::EXCLUDE_START_DATE);
         $days = 0;
         foreach ($period as $value) {
             $checkDate = $value->format('Y-m-d');
-            if ($attendanceLogs->has($checkDate)) {
+            if (isset($attendanceLogs[$checkDate])) {
                 $days++;
                 do_log(sprintf('user: %s, date: %s, [HAS_ATTENDANCE], now days: %s', $attendance->uid, $checkDate, $days));
             } else {
@@ -284,7 +293,7 @@ class AttendanceRepository extends BaseRepository
     public function retroactive($user, $dateStr)
     {
         if (!$user instanceof User) {
-            $user = User::query()->findOrFail((int)$user);
+            $user = User::findOrFail((int)$user);
         }
         $attendance = $this->getAttendance($user->id);
         if (!$attendance) {
@@ -296,7 +305,7 @@ class AttendanceRepository extends BaseRepository
             throw new \LogicException(nexus_trans('attendance.target_date_can_no_be_retroactive', ['date' => $date->format('Y-m-d')]));
         }
         return NexusDB::transaction(function () use ($user, $attendance, $date) {
-            if (AttendanceLog::query()->where('uid', $user->id)->where('date', $date->format('Y-m-d'))->exists()) {
+            if (NexusDB::table('attendance_logs')->where('uid', $user->id)->where('date', $date->format('Y-m-d'))->exists()) {
                 throw new \RuntimeException(nexus_trans('attendance.already_attendance'));
             }
             if ($user->attendance_card < 1) {
@@ -312,10 +321,11 @@ class AttendanceRepository extends BaseRepository
                 'attendance_card' => NexusDB::raw('attendance_card - 1'),
                 'seedbonus' => NexusDB::raw("seedbonus + $points"),
             ];
-            $affectedRows = User::query()
-                ->where('id', $user->id)
-                ->where('attendance_card', $user->attendance_card)
-                ->update($userUpdates);
+            NexusDB::statement(sprintf(
+                'update users set attendance_card = attendance_card - 1, seedbonus = seedbonus + %d where id = %s and attendance_card = %s',
+                intval($points), sqlesc($user->id), sqlesc($user->attendance_card)
+            ));
+            $affectedRows = NexusDB::getInstance()->affectedRows();
             $msg = "Decrement user attendance_card and increment bonus";
             if ($affectedRows != 1) {
                 do_log("$msg fail, query: " . last_query());
@@ -328,12 +338,15 @@ class AttendanceRepository extends BaseRepository
                 'date' => $date,
                 'is_retroactive' => 1,
             ];
-            $attendanceLog = AttendanceLog::query()->create($insert);
+            $insert['date'] = $date->format('Y-m-d');
+            $insertId = NexusDB::insert('attendance_logs', $insert);
+            $attendanceLog = (object)array_merge($insert, ['id' => $insertId]);
             //Increment total days and update days.
-            $attendance->update([
-                'total_days' => NexusDB::raw('total_days + 1'),
-                'days' => $this->getContinuousDays($attendance, Carbon::today()),
-            ]);
+            $newDays = $this->getContinuousDays($attendance, Carbon::today());
+            NexusDB::statement(sprintf(
+                'update attendance set total_days = total_days + 1, days = %d where id = %s',
+                intval($newDays), sqlesc($attendance->id)
+            ));
             return $attendanceLog;
         });
     }

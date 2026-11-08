@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Enums\AnnounceEventEnum;
 use DateTime;
 use DateTimeZone;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
-class AnnounceLog extends NexusModel
+class AnnounceLog extends ModelTable
 {
+    public static string $table = 'announce_logs';
+
     protected $fillable = [
         'timestamp', 'user_id', 'passkey', 'torrent_id', 'info_hash', 'torrent_size',
         'promotion_state', 'promotion_state_desc', 'up_factor', 'up_factor_desc', 'down_factor', 'down_factor_desc',
@@ -20,46 +21,13 @@ class AnnounceLog extends NexusModel
         'continent', 'country', 'city', 'request_id', 'batch_no'
     ];
 
-    protected $table = null;
     protected $primaryKey = "request_id";
 
     protected $keyType = 'string';
 
-    protected function timestamp(): Attribute
-    {
-        return Attribute::make(
-            set: function (?string $value) {
-                return $this->toLocaleTime($value, "Y-m-d H:i:s.u");
-            },
-        );
-    }
 
-    protected function started(): Attribute
-    {
-        return Attribute::make(
-            set: function (?string $value) {
-                return $this->toLocaleTime($value);
-            },
-        );
-    }
 
-    protected function prevAction(): Attribute
-    {
-        return Attribute::make(
-            set: function (?string $value) {
-                return $this->toLocaleTime($value);
-            },
-        );
-    }
 
-    protected function lastAction(): Attribute
-    {
-        return Attribute::make(
-            set: function (string $value) {
-                return $this->toLocaleTime($value);
-            },
-        );
-    }
 
     private function toLocaleTime(?string $time, string $format = "Y-m-d H:i:s"): ?string
     {

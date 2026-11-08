@@ -2,8 +2,8 @@
 
 use App\Models\SearchBox;
 use App\Models\TorrentExtra;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Str;
+use Nexus\Support\HtmlString;
+use Nexus\Support\Str;
 
 function get_langfolder_cookie($transToLocale = false)
 {
@@ -28,7 +28,7 @@ function get_langfolder_cookie($transToLocale = false)
 	if (!$transToLocale) {
 	    return $lang;
     }
-	return \App\Http\Middleware\Locale::$languageMaps[$lang] ?? 'en';
+	return \App\Support\Locale::$languageMaps[$lang] ?? 'en';
 }
 
 function get_user_lang($user_id)
@@ -2831,7 +2831,7 @@ else {
                 <?php if($attendance){ printf(' <a href="attendance.php" class="">'.$lang_functions['text_attended'].'</a>', $attendance->points, $CURUSER['attendance_card']); }else{ printf(' <a href="attendance.php" class="faqlink">%s</a>', $lang_functions['text_attendance']);}?>
                 <a href="medal.php">[<?php echo nexus_trans('medal.label')?>]</a>
                 <a href="task.php">[<?php echo nexus_trans('exam.type_task')?>]</a>
-                <font class = 'color_invite'><?php echo $lang_functions['text_invite'] ?></font>[<a href="invite.php?id=<?php echo $CURUSER['id']?>"><?php echo $lang_functions['text_send'] ?></a>]: <?php echo sprintf('%s(%s)', $CURUSER['invites'], \App\Models\Invite::query()->where('inviter', $CURUSER['id'])->where('invitee', '')->where('expired_at', '>', now())->count())?>
+                <font class = 'color_invite'><?php echo $lang_functions['text_invite'] ?></font>[<a href="invite.php?id=<?php echo $CURUSER['id']?>"><?php echo $lang_functions['text_send'] ?></a>]: <?php echo sprintf('%s(%s)', $CURUSER['invites'], get_row_count('invites', "WHERE inviter = " . sqlesc($CURUSER['id']) . " AND invitee = '' AND expired_at > " . sqlesc(now())))?>
                 <?php if(get_user_class() >= \App\Models\User::getAccessAdminClassMin()) printf('[<a href="%s">%s</a>]', admin_panel_enabled() ? 'controlcenter.php' : nexus_env('FILAMENT_PATH', 'nexusphp'), $lang_functions['text_management_system'])?>
                 <br />
             </span>
@@ -2861,14 +2861,8 @@ if (user_can('staffmem')) {
         $totalreports = get_row_count("reports");
         $Cache->cache_value('staff_report_count', $totalreports, 900);
     }
-    $totalcheaters = $Cache->get_value('staff_cheater_count');
-    if ($totalcheaters == ""){
-        $totalcheaters = get_row_count("cheaters");
-        $Cache->cache_value('staff_cheater_count', $totalcheaters, 900);
-    }
     print(
-        "<a href=\"cheaterbox.php\"><img class=\"cheaterbox\" alt=\"cheaterbox\" title=\"".$lang_functions['title_cheaterbox']."\" src=\"pic/trans.gif\" />  </a>".$totalcheaters
-        ."  <a href=\"reports.php\"><img class=\"reportbox\" alt=\"reportbox\" title=\"".$lang_functions['title_reportbox']."\" src=\"pic/trans.gif\" />  </a>".$totalreports
+        "<a href=\"reports.php\"><img class=\"reportbox\" alt=\"reportbox\" title=\"".$lang_functions['title_reportbox']."\" src=\"pic/trans.gif\" />  </a>".$totalreports
     );
 }
 print(" <a href=\"friends.php\"><img class=\"buddylist\" alt=\"Buddylist\" title=\"".$lang_functions['title_buddylist']."\" src=\"pic/trans.gif\" /></a>");
@@ -2970,7 +2964,7 @@ if ($msgalert)
 		$text = $lang_functions['text_you_have'].$unread.$lang_functions['text_new_message'] . add_s($unread) . $lang_functions['text_click_here_to_read'];
 		msgalert("messages.php",$text, "red");
 	}
-    \App\Utils\MsgAlert::getInstance()->render();
+    \App\Support\MsgAlert::getInstance()->render();
 
 /*
 	$pending_invitee = $Cache->get_value('user_'.$CURUSER["id"].'_pending_invitee_count');
@@ -3028,7 +3022,7 @@ if ($msgalert)
 
     //seed box approval
     if (get_user_class() >= \App\Models\User::CLASS_ADMINISTRATOR && get_setting('seed_box.enabled') == 'yes') {
-        $cacheKey = \App\Repositories\SeedBoxRepository::APPROVAL_COUNT_CACHE_KEY;
+        $cacheKey = 'seed_box_approval_count';
         $toApprovalCounts = $Cache->get_value($cacheKey);
         if ($toApprovalCounts === false) {
             $toApprovalCounts = get_row_count('seed_box_records', 'where status = 0');
@@ -3067,7 +3061,7 @@ if ($msgalert)
 		}
 		if ($numcheaters){
 			$text = $lang_functions['text_there_is'].is_or_are($numcheaters).$numcheaters.$lang_functions['text_new_suspected_cheater'] .add_s($numcheaters);
-			msgalert("cheaterbox.php",$text, "blue");
+			msgalert("reports.php",$text, "blue");
 		}
 	}
 
@@ -3217,7 +3211,7 @@ function logincookie($id, $authKey, $duration = 0)
     if ($langId > 0) {
         $update['lang'] = $langId;
     }
-	\App\Models\User::query()->where("id", $id)->update($update);
+	\Nexus\Database\NexusDB::update('users', $update, 'id = ' . sqlesc($id));
 }
 
 function set_langfolder_cookie($folder, $expires = 0x7fffffff)
@@ -3241,8 +3235,8 @@ function get_langid_from_langcookie($lang = '')
     if (empty($lang)) {
         $lang = get_langfolder_cookie();
     }
-    $row = \App\Models\Language::query()->where('site_lang', 1)->where("site_lang_folder", $lang)->orderBy("id")->first();
-    return $row->id ?? 0;
+    $row = \Nexus\Database\NexusDB::getOne('language', "site_lang = 1 and site_lang_folder = " . sqlesc($lang), 'id');
+    return intval($row['id'] ?? 0);
 //	$row = mysql_fetch_array(sql_query("SELECT id FROM language WHERE site_lang = 1 AND site_lang_folder = " . sqlesc($lang) . "ORDER BY id ASC")) or sqlerr(__FILE__, __LINE__);
 //	return $row['id'];
 }
@@ -3328,8 +3322,7 @@ function deletetorrent($id, $notify = false) {
         do_action("torrent_delete", $_id);
         fire_event("torrent_deleted", $torrentInfo->get($_id));
     }
-    $meiliSearchRep = new \App\Repositories\MeiliSearchRepository();
-    $meiliSearchRep->deleteDocuments($idArr);
+    //0.2.0：全文搜索（MeiliSearch）已移除
 }
 
 function pager($rpp, $count, $href, $opts = array(), $pagename = "page") {
@@ -3512,11 +3505,15 @@ function langlist($type, $enabled = null) {
 	global $Cache;
 	$cacheKey = $type.'_lang_list';
 	return  \Nexus\Database\NexusDB::remember($cacheKey, 600, function () use ($type, $enabled) {
-        $query = \App\Models\Language::query()->where($type, 1);
+        $sql = sprintf('select * from language where `%s` = 1', preg_replace('/[^a-z_]/', '', $type));
         if ($enabled !== null) {
-            $query->whereIn('site_lang_folder', \App\Models\Language::listEnabled(true));
+            $list = \App\Models\Language::listEnabled(true);
+            if (!empty($list)) {
+                $sql .= ' and site_lang_folder in (' . implode(', ', array_map('sqlesc', $list)) . ')';
+            }
         }
-        return $query->get()->toArray();
+        $sql .= ' order by site_lang desc, id asc';
+        return \Nexus\Database\NexusDB::select($sql);
     });
 //    if (!$ret = $Cache->get_value($type.'_lang_list')){
 //        $ret = array();
@@ -3624,7 +3621,6 @@ function torrenttable($rows, $variant = "torrent", $searchBoxId = 0) {
     }
 	//seedBoxIcon
 	if ($showSeedBoxIcon) {
-	    $seedBoxRep = new \App\Repositories\SeedBoxRepository();
 	    $seedBoxPeerInfo = \App\Models\Peer::query()
             ->whereIn('torrent', $torrentIdArr)
             ->where('seeder', 'yes')
@@ -4513,7 +4509,7 @@ function gettime($time, $withago = true, $twoline = false, $forceago = false, $o
     }
 	if (!IN_NEXUS) {
         try {
-            return \Carbon\Carbon::parse($time)->diffForHumans();
+            return \App\Support\Carbon::parse($time)->diffForHumans();
         } catch (\Exception $e) {
             do_log($e->getMessage() . $e->getTraceAsString(), 'error');
             return $time;
@@ -5796,7 +5792,7 @@ function attachmentKey($url)
     } elseif ($driver == 'cloudinary') {
         $parts = explode('/', $parsed['path']);
         $key = end($parts);
-        if (\Illuminate\Support\Str::contains($key,'.')) {
+        if (\Nexus\Support\Str::contains($key,'.')) {
             $key = strstr($key, '.', true);
         }
         return $key;
@@ -6155,7 +6151,7 @@ function msgalert($url, $text, $bgcolor = "red")
     print("</td></tr></table><br />");
 }
 
-function build_medal_image(\Illuminate\Support\Collection $medals, $maxHeight = 200, $withActions = false): string
+function build_medal_image(\Nexus\Database\QueryCollection $medals, $maxHeight = 200, $withActions = false): string
 {
     $medalImages = [];
     $wrapBefore = '<form><div style="display: flex;flex-wrap: wrap;justify-content: center;margin-top: 10px;">';
@@ -6195,7 +6191,7 @@ function build_medal_image(\Illuminate\Support\Collection $medals, $maxHeight = 
 function insert_torrent_tags($torrentId, $tagIdArr, $sync = false)
 {
     $specialTags = \App\Models\Tag::listSpecial();
-    $canSetSpecialTag = \App\Auth\Permission::canSetTorrentSpecialTag();
+    $canSetSpecialTag = \App\Support\Permission::canSetTorrentSpecialTag();
     $dateTimeStringNow = date('Y-m-d H:i:s');
     if ($sync) {
         $delQuery = \App\Models\TorrentTag::query()->where("torrent_id", $torrentId);
@@ -6284,7 +6280,7 @@ function calculate_seed_bonus($uid, $torrentIdArr = null): array
         if (empty($torrentIdArr)) {
             $torrentIdArr = [-1];
         }
-        $idStr = implode(',', \Illuminate\Support\Arr::wrap($torrentIdArr));
+        $idStr = implode(',', \Nexus\Database\Arr::wrap($torrentIdArr));
         $sql = "select torrents.id, torrents.added, torrents.size, torrents.seeders, 'NO_PEER_ID' as peerID, '' as last_action, '' as ip from torrents  WHERE id in ($idStr) and size >= $minSize";
     } else {
         $sql = "select torrents.id, torrents.added, torrents.size, torrents.seeders, peers.id as peerID, peers.last_action, peers.ip from torrents LEFT JOIN peers ON peers.torrent = torrents.id WHERE peers.userid = $uid AND peers.seeder ='yes' and torrents.size > $minSize group by peers.torrent, peers.peer_id";
@@ -6412,10 +6408,14 @@ function build_search_box_category_table($mode, $checkboxValue, $categoryHrefPre
     }
     //Category
     $html .= sprintf('<tr><td class="embedded" align="left">%s</td></tr>', nexus_trans('label.search_box.category'));
-    /** @var \Illuminate\DataBase\Eloquent\Collection $categoryCollection */
-    $categoryCollection = $searchBox->categories()->with('icon')->orderBy('sort_index', 'desc')->get();
+    /** @var \Nexus\Database\QueryCollection $categoryCollection */
+    $categoryRows = \Nexus\Database\NexusDB::select(
+        'select * from categories where mode in (' . intval($searchBox->mode) . ', 0)'
+        . ' order by sort_index desc, id asc'
+    );
+    $categoryCollection = \Nexus\Database\QueryCollection::make(array_map(fn($row) => new \App\Support\RowObject($row), $categoryRows));
     if (!empty($options['select_unselect'])) {
-        $categoryCollection->push(new \App\Models\Category(['mode' => -1]));
+        $categoryCollection->push(new \App\Support\RowObject(['mode' => -1, 'id' => -1, 'name' => '']));
     }
     $categoryChunks = $categoryCollection->chunk($searchBox->catsperrow);
     $checkPrefix = 'cat';
@@ -6473,9 +6473,9 @@ TD;
             $namePrefix = $torrentField;
         }
         $html .= sprintf('<tr><td class="embedded" align="left">%s</td></tr>', $searchBox->getTaxonomyLabel($torrentField));
-        /** @var \Illuminate\DataBase\Eloquent\Collection $taxonomyCollection */
+        /** @var \Nexus\Database\QueryCollection $taxonomyCollection */
         $taxonomyCollection = \Nexus\Database\NexusDB::table($tableName)
-            ->where(function (\Illuminate\Database\Query\Builder $query) use ($mode) {
+            ->where(function (\Nexus\Database\QueryBuilder $query) use ($mode) {
                 return $query->whereIn('mode', [$mode, 0]);
             })
             ->orderBy('sort_index', 'desc')

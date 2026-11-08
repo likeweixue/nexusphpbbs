@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Models;
-class ForumMod extends NexusModel
+class ForumMod extends ModelTable
 {
-    protected $table = 'forummods';
+    public static string $table = 'forummods';
 
     protected $fillable = ['forumid', 'userid'];
 

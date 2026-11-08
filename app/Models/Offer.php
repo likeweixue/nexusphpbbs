@@ -3,8 +3,10 @@
 namespace App\Models;
 
 
-class Offer extends NexusModel
+class Offer extends ModelTable
 {
+    public static string $table = 'offers';
+
     protected $fillable = ['userid', 'name', 'descr', 'comments', 'added'];
 
     protected $casts = [

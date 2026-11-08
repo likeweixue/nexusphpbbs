@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-class UserMedal extends NexusModel
+class UserMedal extends ModelTable
 {
+    public static string $table = 'user_medals';
+
     protected $fillable = ['uid', 'medal_id', 'expire_at', 'status', 'bonus_addition_expire_at'];
 
     const STATUS_NOT_WEARING = 0;

@@ -5,9 +5,7 @@ namespace App\Repositories;
 use App\Models\Setting;
 use App\Models\Torrent;
 use App\Models\User;
-use Illuminate\Encryption\Encrypter;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Nexus\Support\Str;
 
 class BaseRepository
 {
@@ -21,7 +19,7 @@ class BaseRepository
         return [$field, $type];
     }
 
-    protected function getPerPageFromRequest(Request $request)
+    protected function getPerPageFromRequest($request)
     {
         $perPage =  $request->get('per_page');
         if ($perPage && $perPage > 100) {

@@ -797,7 +797,7 @@ elseif ($action == 'mainsettings')	// main settings
 	
 	
 
-    $allSiteLanguages = \App\Models\Language::query()->where('site_lang', 1)->get();
+    $allSiteLanguages = \Nexus\Database\NexusDB::select('select * from language where site_lang = 1 order by id asc');
     $allEnabled = \App\Models\Language::listEnabled(true);
     $langlist = "";
     foreach ($allSiteLanguages as $lang) {

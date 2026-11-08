@@ -6,14 +6,13 @@ use App\Models\Medal;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\UserMedal;
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
+use App\Support\Carbon;
+use Nexus\Database\QueryCollection;
 use Nexus\Database\NexusDB;
 
 class MedalRepository extends BaseRepository
 {
-    public function getList(array $params): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getList(array $params)
     {
         $query = Medal::query();
         list($sortField, $sortType) = $this->getSortFieldAndType($params);
@@ -48,7 +47,7 @@ class MedalRepository extends BaseRepository
     public function delete($id): bool
     {
         $medal = Medal::query()->findOrFail($id);
-        NexusDB::transaction(function () use ($medal) {
+        NexusNexusDB::transaction(function () use ($medal) {
             do {
                 $deleted = UserMedal::query()->where('medal_id', $medal->id)->limit(10000)->delete();
             } while ($deleted > 0);
@@ -60,7 +59,7 @@ class MedalRepository extends BaseRepository
     public function  grantToUser(int $uid, int $medalId, $duration = null)
     {
         $user = User::query()->findOrFail($uid, User::$commonFields);
-        if (Auth::user()->class <= $user->class) {
+        if ((!empty($GLOBALS["CURUSER"]) ? (object)$GLOBALS["CURUSER"] : null)->class <= $user->class) {
             throw new \LogicException("No permission!");
         }
         $medal = Medal::query()->findOrFail($medalId);
@@ -153,7 +152,7 @@ class MedalRepository extends BaseRepository
     {
         $this->checkExpireField($field);
         $idArr = $collection->pluck('id')->toArray();
-        $result = NexusDB::table("user_medals")
+        $result = NexusNexusDB::table("user_medals")
             ->whereIn('id', $idArr)
             ->whereNotNull($field)
             ->update([$field => NexusDB::raw("`$field` + INTERVAL $duration DAY")]);
@@ -167,7 +166,7 @@ class MedalRepository extends BaseRepository
     {
         $this->checkExpireField($field);
         $idArr = $collection->pluck('id')->toArray();
-        $result = NexusDB::table("user_medals")
+        $result = NexusNexusDB::table("user_medals")
             ->whereIn('id', $idArr)
             ->update([$field => $expireAt]);
         do_log(sprintf(
@@ -180,7 +179,7 @@ class MedalRepository extends BaseRepository
     {
         $this->checkExpireField($field);
         $idArr = $collection->pluck('id')->toArray();
-        $result = NexusDB::table("user_medals")
+        $result = NexusNexusDB::table("user_medals")
             ->whereIn('id', $idArr)
             ->update([$field => NexusDB::raw("null")]);
         do_log(sprintf(

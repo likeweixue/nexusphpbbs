@@ -22,14 +22,11 @@ use App\Models\UserMeta;
 use App\Models\UserModifyLog;
 use App\Models\UsernameChangeLog;
 use App\Utils\ApiQueryBuilder;
-use Carbon\Carbon;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
+use App\Support\Carbon;
+use Nexus\Database\QueryBuilder;
+use Nexus\Database\Arr;
+use Nexus\Database\QueryCollection;
+use Nexus\Support\Str;
 use Nexus\Database\NexusDB;
 
 class UserRepository extends BaseRepository
@@ -452,9 +449,7 @@ class UserRepository extends BaseRepository
             $query->whereIn('meta_key', Arr::wrap($metaKeys));
         }
         if ($valid) {
-            $query->where('status', 0)->where(function (Builder $query) {
-                $query->whereNull('deadline')->orWhere('deadline', '>=', now());
-            });
+            $query->where('status', 0)->whereRaw('(deadline is null or deadline >= ' . sqlesc(now()) . ')');
         }
         return $query->get()->groupBy('meta_key');
     }
@@ -806,15 +801,16 @@ class UserRepository extends BaseRepository
     public function saveLoginLog(int $uid, string $ip,  string $client = '', bool $notify = false)
     {
         $locationInfo = get_ip_location_from_geoip($ip);
-        $loginLog = LoginLog::query()->create([
+        $loginLogId = \Nexus\Database\NexusDB::insert('login_logs', [
             'ip' => $ip,
             'uid' => $uid,
             'country' => $locationInfo['country_en'] ?? '',
             'city' => $locationInfo['city_en'] ?? '',
             'client' => $client,
         ]);
+        $loginLog = (object)['id' => $loginLogId];
         if ($notify) {
-            $command = sprintf("user:login_notify --this_id=%s", $loginLog->id);
+            $command = sprintf("user:login_notify --this_id=%s", $loginLogId);
             do_log("[LOGIN_NOTIFY], user: $uid, $command");
             executeCommand($command, "string", true, false);
         }

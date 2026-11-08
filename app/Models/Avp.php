@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Avp extends NexusModel
+class Avp extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'avps';
+
 }

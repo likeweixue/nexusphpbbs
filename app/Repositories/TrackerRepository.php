@@ -16,13 +16,10 @@ use App\Models\Snatch;
 use App\Models\Torrent;
 use App\Models\User;
 use App\Models\UserBanLog;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
+use App\Support\Carbon;
+use Nexus\Support\Request;
 use App\Exceptions\TrackerException;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
+use Nexus\Database\Arr;
 use Nexus\Database\NexusDB;
 use Rhilip\Bencode\Bencode;
 
@@ -53,7 +50,7 @@ class TrackerRepository extends BaseRepository
         6699,  // Port used by p2p software, such as WinMX, Napster.
     ];
 
-    public function announce(Request $request): \Illuminate\Http\Response
+    public function announce(Request $request)
     {
         do_log("queryString: " . $request->getQueryString());
 
@@ -787,7 +784,7 @@ class TrackerRepository extends BaseRepository
         ];
     }
 
-    protected function sendFinalAnnounceResponse($repDict): \Illuminate\Http\Response
+    protected function sendFinalAnnounceResponse($repDict)
     {
         do_log("[repDict] " . nexus_json_encode($repDict));
         return \response(Bencode::encode($repDict))
@@ -932,8 +929,8 @@ class TrackerRepository extends BaseRepository
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             $hostname = '['.$ip.']';
         }
-        $connectable = Cache::get($cacheKey);
-        if ($connectable === null) {
+        $connectable = \Nexus\Database\NexusDB::cache_get($cacheKey);
+        if ($connectable === false || $connectable === null) {
             $con = @fsockopen($hostname, $port, $error_code, $error_message, 1);
             if (is_resource($con)) {
                 $connectable = Peer::CONNECTABLE_YES;
@@ -941,7 +938,7 @@ class TrackerRepository extends BaseRepository
             } else {
                 $connectable = Peer::CONNECTABLE_NO;
             }
-            Cache::put($cacheKey, $connectable, 3600);
+            \Nexus\Database\NexusDB::cache_put($cacheKey, $connectable, 3600);
             $log .= ", do check, connectable: " . $connectable;
         } else {
             $log .= ", don't do check";
@@ -1000,7 +997,7 @@ class TrackerRepository extends BaseRepository
         return $snatch;
     }
 
-    public function scrape(Request $request): \Illuminate\Http\Response
+    public function scrape(Request $request)
     {
         do_log("queryString: " . $request->getQueryString());
         /**
@@ -1085,7 +1082,7 @@ class TrackerRepository extends BaseRepository
     private function getTorrentByInfoHash($infoHash)
     {
         $cacheKey = __METHOD__ . bin2hex($infoHash);
-        return Cache::remember($cacheKey, 60, function () use ($infoHash, $cacheKey) {
+        return \Nexus\Database\NexusDB::remember($cacheKey, 60, function () use ($infoHash, $cacheKey) {
             $fieldRaw = 'id, owner, sp_state, seeders, leechers, added, banned, hr, visible, last_action, times_completed, approval_status';
             $torrent = Torrent::query()->where('info_hash', $infoHash)->selectRaw($fieldRaw)->first();
             do_log("[getTorrentByInfoHash] cache miss [$cacheKey], from database, and get: " . ($torrent->id ?? ''));

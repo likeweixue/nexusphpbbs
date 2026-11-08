@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class AudioCodec extends NexusModel
+class AudioCodec extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'audiocodecs';
+    public static string $table = 'audiocodecs';
 
     protected $fillable = ['name', 'sort_index', 'mode',];
 

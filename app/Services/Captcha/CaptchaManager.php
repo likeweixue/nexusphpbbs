@@ -4,7 +4,7 @@ namespace App\Services\Captcha;
 
 use App\Services\Captcha\Exceptions\CaptchaValidationException;
 use App\Models\Setting;
-use Illuminate\Support\Arr;
+use Nexus\Database\Arr;
 
 class CaptchaManager
 {

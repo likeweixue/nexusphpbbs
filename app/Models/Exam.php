@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
+use App\Support\Carbon;
 
-class Exam extends NexusModel
+class Exam extends ModelTable
 {
+    public static string $table = 'exams';
+
     use NexusActivityLogTrait;
 
     protected $fillable = [

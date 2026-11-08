@@ -4,9 +4,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class UserMeta extends NexusModel
+class UserMeta extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'user_metas';
 
     protected $fillable = ['uid', 'meta_key', 'meta_value', 'status', 'deadline'];
 

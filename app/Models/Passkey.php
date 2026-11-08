@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-class Passkey extends NexusModel
+class Passkey extends ModelTable
 {
-    protected $table = 'user_passkeys';
+    public static string $table = 'user_passkeys';
 
     public $timestamps = true;
 

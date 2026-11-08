@@ -3,8 +3,10 @@
 namespace App\Models;
 
 
-class Claim extends NexusModel
+class Claim extends ModelTable
 {
+    public static string $table = 'claims';
+
     protected $fillable = ['uid', 'torrent_id', 'snatched_id', 'seed_time_begin', 'uploaded_begin', 'last_settle_at'];
 
     public $timestamps = true;

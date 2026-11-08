@@ -2,14 +2,15 @@
 require "../include/bittorrent.php";
 dbconn();
 loggedinorreturn();
-$query = \App\Models\Exam::query()
-    ->where('type', \App\Models\Exam::TYPE_TASK)
-    ->where("status", \App\Models\Exam::STATUS_ENABLED)
-;
-$total = (clone $query)->count();
+$where = 'type = ' . sqlesc(\App\Models\Exam::TYPE_TASK) . ' and status = ' . sqlesc(\App\Models\Exam::STATUS_ENABLED);
+$total = intval(get_row_count('exams', 'WHERE ' . $where));
 $perPage = 20;
 list($paginationTop, $paginationBottom, $limit, $offset) = pager($perPage, $total, "?");
-$rows = (clone $query)->offset($offset)->take($perPage)->orderBy('id', 'desc')->withCount("onGoingUsers")->get();
+$rows = [];
+foreach (\Nexus\Database\NexusDB::select("select * from exams where $where order by id desc $limit") as $examRow) {
+    $examRow['on_going_users_count'] = intval(get_row_count('exam_users', 'WHERE exam_id = ' . sqlesc($examRow['id']) . ' AND is_done = 0'));
+    $rows[] = new \App\Support\RowObject($examRow);
+}
 $title = nexus_trans('exam.type_task');
 $columnNameLabel = nexus_trans('label.name');
 $columnIndexLabel = nexus_trans('exam.index');
@@ -47,17 +48,22 @@ $table = <<<TABLE
 TABLE;
 $now = now();
 $table .= '<tbody>';
-$userInfo = \App\Models\User::query()->findOrFail($CURUSER['id'], \App\Models\User::$commonFields);
-$userTasks = $userInfo->onGoingExamAndTasks()->where("type", \App\Models\Exam::TYPE_TASK)
-    ->orderBy('id', 'desc')
-    ->get()
-    ->keyBy('id')
-;
+$userTaskRows = \Nexus\Database\NexusDB::select(
+    'select exam_users.* from exam_users inner join exams on exams.id = exam_users.exam_id'
+    . ' where exam_users.uid = ' . sqlesc($CURUSER['id'])
+    . ' and exam_users.is_done = 0'
+    . ' and exams.type = ' . sqlesc(\App\Models\Exam::TYPE_TASK)
+    . ' order by exams.id desc'
+);
+$userTasks = [];
+foreach ($userTaskRows as $userTaskRow) {
+    $userTasks[$userTaskRow['exam_id']] = new \App\Support\RowObject($userTaskRow);
+}
 //dd(last_query());
 foreach ($rows as $row) {
     $claimDisabled = $claimClass = '';
     $claimBtnText = nexus_trans("exam.action_claim_task");
-    if ($userTasks->has($row->id)) {
+    if (isset($userTasks[$row->id])) {
         $claimDisabled = " disabled";
         $claimBtnText = nexus_trans("exam.claimed_already");
     } else {

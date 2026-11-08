@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Nexus\Database\NexusDB;
 
-class TorrentOperationLog extends NexusModel
+class TorrentOperationLog extends ModelTable
 {
-    protected $table = 'torrent_operation_logs';
+    public static string $table = 'torrent_operation_logs';
 
     public $timestamps = true;
 

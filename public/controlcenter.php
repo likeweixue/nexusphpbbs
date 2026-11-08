@@ -8,7 +8,7 @@ if (get_user_class() < UC_MODERATOR) {
     permissiondenied();
 }
 
-require_once(ROOT_PATH . 'app/Console/Admin/AdminMenu.php');
+require_once(ROOT_PATH . 'app/Admin/AdminMenu.php');
 
 $lang = get_langfolder_cookie();
 $isChinese = str_starts_with($lang, 'ch');
@@ -33,8 +33,8 @@ $L = $isChinese ? [
     'filament_hint' => 'New admin UI (requires vendor)',
 ];
 
-$items = \App\Console\Admin\AdminMenu::items();
-$groups = \App\Console\Admin\AdminMenu::GROUPS;
+$items = \App\Admin\AdminMenu::items();
+$groups = \App\Admin\AdminMenu::GROUPS;
 $filamentAvailable = is_dir(ROOT_PATH . 'vendor/filament');
 $filamentBase = rtrim(nexus_env('FILAMENT_PATH', 'nexusphp'), '/');
 
@@ -62,12 +62,12 @@ foreach ($groups as $groupKey => $groupNames) {
     if (empty($groupItems)) {
         continue;
     }
-    print("<h2 align=\"left\">" . htmlspecialchars(\App\Console\Admin\AdminMenu::text($groupNames, $langKey)) . "</h2>");
+    print("<h2 align=\"left\">" . htmlspecialchars(\App\Admin\AdminMenu::text($groupNames, $langKey)) . "</h2>");
     print("<table width=\"80%\" border=\"1\" cellspacing=\"0\" cellpadding=\"5\" align=\"center\">");
     print("<tr><td class=\"colhead\" align=\"left\">" . htmlspecialchars($L['col_name']) . "</td><td class=\"colhead\" align=\"left\">" . htmlspecialchars($L['col_info']) . "</td></tr>");
     foreach ($groupItems as $item) {
-        $name = \App\Console\Admin\AdminMenu::text($item['name'], $langKey);
-        $info = \App\Console\Admin\AdminMenu::text($item['info'], $langKey);
+        $name = \App\Admin\AdminMenu::text($item['name'], $langKey);
+        $info = \App\Admin\AdminMenu::text($item['info'], $langKey);
         $url = admincp_item_url($item, $filamentAvailable, $filamentBase);
         if ($url === null) {
             $info .= ' <span class="small">' . htmlspecialchars($L['filament_only']) . '</span>';

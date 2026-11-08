@@ -3,11 +3,10 @@
 namespace App\Models;
 
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
-class IpLog extends NexusModel
+class IpLog extends ModelTable
 {
-    protected $table = 'iplog';
+    public static string $table = 'iplog';
 
     protected $fillable = ['ip', 'userid', 'access', 'uri', 'count'];
 

@@ -2,13 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\HtmlString;
+use Nexus\Support\HtmlString;
 use Nexus\Database\NexusDB;
 use Sushi\Sushi;
 use Nexus\Plugin\Plugin;

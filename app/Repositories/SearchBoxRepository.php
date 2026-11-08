@@ -2,9 +2,9 @@
 
 namespace App\Repositories;
 
-use App\Auth\Permission;
+use App\Support\Permission;
 use App\Exceptions\InsufficientPermissionException;
-use App\Http\Middleware\Locale;
+use App\Support\Locale;
 use App\Models\Category;
 use App\Models\Icon;
 use App\Models\NexusModel;
@@ -14,15 +14,14 @@ use App\Models\Setting;
 use App\Models\Torrent;
 use App\Models\User;
 use Elasticsearch\Endpoints\Search;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Auth;
+use Nexus\Database\QueryBuilder;
+use Nexus\Database\Arr;
 use Nexus\Database\NexusDB;
 use Filament\Forms;
 
 class SearchBoxRepository extends BaseRepository
 {
-    public function getList(array $params): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getList(array $params)
     {
         $query = SearchBox::query();
         list($sortField, $sortType) = $this->getSortFieldAndType($params);
@@ -233,7 +232,7 @@ class SearchBoxRepository extends BaseRepository
             throw new InsufficientPermissionException();
         }
         $idArr = Arr::wrap($id);
-        $exists = Torrent::query()->whereHas('basic_category', function (\Illuminate\Database\Eloquent\Builder $query) use ($idArr) {
+        $exists = Torrent::query()->whereHas('basic_category', function (\Nexus\Database\QueryBuilder $query) use ($idArr) {
             return $query->whereIn('id', $idArr);
         })->exists();
         if ($exists) {
@@ -334,7 +333,7 @@ class SearchBoxRepository extends BaseRepository
     {
         $tableName = SearchBox::$taxonomies[$torrentField]['table'];
         return NexusDB::table($tableName)
-            ->where(function (\Illuminate\Database\Query\Builder $query) use ($mode) {
+            ->where(function (\Nexus\Database\QueryBuilder $query) use ($mode) {
                 return $query->where('mode', $mode)->orWhere('mode', 0);
             })
             ->orderBy('sort_index', 'desc')

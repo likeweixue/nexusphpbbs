@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Nexus\Database\NexusDB;
 
-class TorrentCustomField extends NexusModel
+class TorrentCustomField extends ModelTable
 {
-    protected $table = 'torrents_custom_fields';
+    public static string $table = 'torrents_custom_fields';
 
     public $timestamps = true;
 

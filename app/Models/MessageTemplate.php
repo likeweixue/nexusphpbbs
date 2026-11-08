@@ -4,11 +4,11 @@ namespace App\Models;
 
 use App\Enums\MessageTemplateNameEnum;
 use App\Models\Traits\NexusActivityLogTrait;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MessageTemplate extends NexusModel
+class MessageTemplate extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'message_templates';
 
     protected $fillable = ['name', 'content', 'language_id'];
 

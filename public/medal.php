@@ -2,16 +2,18 @@
 require "../include/bittorrent.php";
 dbconn();
 loggedinorreturn();
-$query = \App\Models\Medal::query()->where('display_on_medal_page', 1)
-    ->orderBy('priority', 'desc')->orderBy("id", 'desc');
+$where = 'display_on_medal_page = 1';
 $q = htmlspecialchars($_REQUEST['q'] ?? '');
 if (!empty($q)) {
-    $query->where('username', 'name', "%{$q}%");
+    $where .= ' and name like ' . sqlesc("%{$q}%");
 }
-$total = (clone $query)->count();
+$total = intval(get_row_count('medals', 'WHERE ' . $where));
 $perPage = 20;
 list($paginationTop, $paginationBottom, $limit, $offset) = pager($perPage, $total, "?");
-$rows = (clone $query)->offset($offset)->take($perPage)->orderBy('id', 'desc')->get();
+$rows = [];
+foreach (\Nexus\Database\NexusDB::select("select * from medals where $where order by priority desc, id desc $limit") as $medalRow) {
+    $rows[] = new \App\Support\RowObject($medalRow);
+}
 $q = htmlspecialchars($q);
 $title = nexus_trans('medal.label');
 $columnNameLabel = nexus_trans('label.name');
@@ -55,15 +57,21 @@ $table = <<<TABLE
 </thead>
 TABLE;
 $now = now();
-$user = \App\Models\User::query()->findOrFail($CURUSER['id']);
 $table .= '<tbody>';
-$userMedals = $user->valid_medals->keyBy('id');
+$userMedalRows = \Nexus\Database\NexusDB::select(
+    'select user_medals.* from user_medals where user_medals.uid = ' . sqlesc($CURUSER['id'])
+    . ' and (user_medals.expire_at is null or user_medals.expire_at > ' . sqlesc(date('Y-m-d H:i:s')) . ')'
+);
+$userMedals = [];
+foreach ($userMedalRows as $userMedalRow) {
+    $userMedals[intval($userMedalRow['medal_id'])] = new \App\Support\RowObject($userMedalRow);
+}
 foreach ($rows as $row) {
     $buyDisabled = $giftDisabled = ' disabled';
     $buyClass = $giftClass = '';
     try {
         $row->checkCanBeBuy();
-        if ($userMedals->has($row->id)) {
+        if (isset($userMedals[intval($row->id)])) {
             $buyBtnText = nexus_trans('medal.buy_already');
         } elseif ($CURUSER['seedbonus'] < $row->price) {
             $buyBtnText = nexus_trans('medal.require_more_bonus');

@@ -2,38 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Nexus\Database\NexusDB;
-
-class NexusModel extends Model
+/**
+ * 模型基类（纯 PHP 版）。
+ *
+ * 只保留传统页面实际用到的通用能力：静态工具方法；数据读写请使用
+ * NexusDB::table() / NexusDB::select() 等原生查询接口。
+ */
+class NexusModel
 {
-    use HasFactory;
-
-    public $timestamps = false;
-
-    protected $perPage = 50;
-
-    protected $connection = NexusDB::ELOQUENT_CONNECTION_NAME;
-
-    protected function usernameForAdmin(): Attribute
-    {
-        return Attribute::make(
-            get: fn (mixed $value, array $attributes) => username_for_admin($attributes['uid'] ?? $attributes['userid'] ?? $attributes['user_id'])
-        );
-    }
-
-    /**
-     *
-     * @param  \DateTimeInterface  $date
-     * @return string
-     */
-    protected function serializeDate(\DateTimeInterface $date)
-    {
-        return $date->format($this->dateFormat ?: 'Y-m-d H:i:s');
-    }
-
     /**
      * Check is valid date string
      *
@@ -44,7 +20,7 @@ class NexusModel extends Model
      */
     public function isValidDate($name, $format = 'Y-m-d H:i:s'): bool
     {
-        $date = $this->getRawOriginal($name);
+        $date = $this->{$name} ?? null;
         $d = \DateTime::createFromFormat($format, $date);
         // The Y ( 4 digits year ) returns TRUE for any integer with any number of digits so changing the comparison from == to === fixes the issue.
         return $d && $d->format($format) === $date;
@@ -52,7 +28,7 @@ class NexusModel extends Model
 
     public function getDeadlineText($field = 'deadline')
     {
-        $raw = $this->getRawOriginal($field);
+        $raw = $this->{$field} ?? null;
         if (in_array($raw, [null, '0000-00-00 00:00:00', ''], true)) {
             return nexus_trans("label.permanent");
         }

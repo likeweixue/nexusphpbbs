@@ -84,17 +84,17 @@ $userRep = new \App\Repositories\UserRepository();
 $userRep->saveLoginLog($row['id'], $ip, 'Web', true);
 
 //update user lang
-$language = \App\Models\Language::query()->where("site_lang_folder", get_langfolder_cookie())->first();
+$language = \Nexus\Database\NexusDB::getOne('language', 'site_lang_folder = ' . sqlesc(get_langfolder_cookie()));
 
-if ($language && $language->id != $row["lang"]) {
-    do_log(sprintf("update user: %s lang: %s => %s", $row["id"], $row["lang"], $language->id));
-    $update["lang"] = $language->id;
+if ($language && $language['id'] != $row["lang"]) {
+    do_log(sprintf("update user: %s lang: %s => %s", $row["id"], $row["lang"], $language['id']));
+    $update["lang"] = $language['id'];
 }
 if (empty($row['auth_key'])) {
     $row['auth_key'] = $update['auth_key'] = hash('sha256', mksecret(32));
 }
 if (!empty($update)) {
-    \App\Models\User::query()->where("id", $row["id"])->update($update);
+    \Nexus\Database\NexusDB::update('users', $update, 'id = ' . sqlesc($row["id"]));
     clear_user_cache($row["id"]);
 }
 

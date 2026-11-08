@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Auth\Permission;
+use App\Support\Permission;
 use App\Enums\ModelEventEnum;
 use App\Events\TorrentUpdated;
 use App\Exceptions\InsufficientPermissionException;
@@ -33,17 +33,13 @@ use App\Models\TorrentSecret;
 use App\Models\TorrentTag;
 use App\Models\User;
 use App\Utils\ApiQueryBuilder;
-use Carbon\Carbon;
+use App\Support\Carbon;
 use Elasticsearch\Endpoints\Search;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\JoinClause;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Nexus\Database\QueryBuilder;
+use Nexus\Support\Request;
+use Nexus\Database\Arr;
+use Nexus\Database\QueryCollection;
+use Nexus\Support\Str;
 use Nexus\Cache\FileStore;
 use Nexus\Database\NexusDB;
 use Nexus\Imdb\Imdb;
@@ -689,7 +685,7 @@ class TorrentRepository extends BaseRepository
             $torrentOperationLog['comment'] = $params['comment'] ?? '';
         }
 
-        NexusDB::transaction(function () use ($torrent, $torrentOperationLog, $torrentUpdate, $notifyUser) {
+        NexusNexusDB::transaction(function () use ($torrent, $torrentOperationLog, $torrentUpdate, $notifyUser) {
             $log = "torrent: " . $torrent->id;
             if (!empty($torrentUpdate)) {
                 $log .= ", [UPDATE_TORRENT]: " . nexus_json_encode($torrentUpdate);
@@ -741,7 +737,7 @@ class TorrentRepository extends BaseRepository
     {
         user_can('torrentmanage', true);
         $idArr = Arr::wrap($id);
-        return NexusDB::transaction(function () use ($idArr, $tagIdArr, $remove) {
+        return NexusNexusDB::transaction(function () use ($idArr, $tagIdArr, $remove) {
             $sql = "insert into torrent_tags (torrent_id, tag_id, created_at, updated_at) values ";
             $time = now()->toDateTimeString();
             $values = [];
@@ -1199,7 +1195,7 @@ HTML;
                 'uid' => $operatorId,
             ];
         }
-        NexusDB::transaction(function () use ($torrentIdArr, $categoryId, $siteLogArr) {
+        NexusNexusDB::transaction(function () use ($torrentIdArr, $categoryId, $siteLogArr) {
             SiteLog::query()->insert($siteLogArr);
             Torrent::query()->whereIn('id', $torrentIdArr)->update(['category' => $categoryId]);
         });

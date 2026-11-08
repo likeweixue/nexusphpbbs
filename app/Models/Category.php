@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Category extends NexusModel
+class Category extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'categories';
+    public static string $table = 'categories';
 
     protected $fillable = ['mode', 'name', 'class_name', 'image', 'sort_index', 'icon_id'];
 
@@ -18,10 +17,6 @@ class Category extends NexusModel
         return nexus_trans('searchbox.category_label');
     }
 
-    public function icon(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(Icon::class, 'icon_id');
-    }
 
     public function search_box()
     {

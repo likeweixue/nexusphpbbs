@@ -3,13 +3,11 @@
 namespace App\Models;
 
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use JetBrains\PhpStorm\Pure;
 
-class Snatch extends NexusModel
+class Snatch extends ModelTable
 {
-    protected $table = 'snatched';
+    public static string $table = 'snatched';
 
     protected $fillable = [
         'torrentid', 'userid', 'ip', 'port', 'uploaded', 'downloaded', 'to_go', 'seedtime', 'leechtime',

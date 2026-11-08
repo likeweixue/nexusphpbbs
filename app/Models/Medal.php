@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
-use Carbon\Carbon;
+use App\Support\Carbon;
 
-class Medal extends NexusModel
+class Medal extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'medals';
 
     const GET_TYPE_EXCHANGE = 1;
 
@@ -81,16 +82,6 @@ class Medal extends NexusModel
         }
     }
 
-    public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'user_medals', 'medal_id', 'uid')->withTimestamps();
-    }
 
-    public function valid_users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->users()->where(function ($query) {
-            $query->whereNull('user_medals.expire_at')->orWhere('user_medals.expire_at', '>=', Carbon::now());
-        });
-    }
 
 }

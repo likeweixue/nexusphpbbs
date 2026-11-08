@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Processing extends NexusModel
+class Processing extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'processings';
+    public static string $table = 'processings';
 
     protected $fillable = ['name', 'sort_index', 'mode',];
 

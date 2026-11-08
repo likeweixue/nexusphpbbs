@@ -4,17 +4,16 @@ namespace App\Exceptions;
 
 class LockFailException extends NexusException
 {
-    public function __construct(protected string $lockName, protected string $lockOwner)
+    private $name;
+
+    public function __construct(string $name = '', $owner = null)
     {
-        parent::__construct();
+        $this->name = $name;
+        parent::__construct("Can not acquire lock: $name" . ($owner ? ", owner: $owner" : ''));
     }
 
-    public function getLockName(): string
+    public function getName()
     {
-        return $this->lockName;
-    }
-    public function getLockOwner(): string
-    {
-        return $this->lockOwner;
+        return $this->name;
     }
 }

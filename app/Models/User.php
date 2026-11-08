@@ -3,35 +3,30 @@
 namespace App\Models;
 
 use App\Exceptions\NexusException;
-use App\Http\Middleware\Locale;
-use App\Models\Traits\NexusActivityLogTrait;
-use App\Repositories\ExamRepository;
-use App\Repositories\TokenRepository;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\HasApiTokens;
+use App\Support\Locale;
 use Nexus\Database\NexusDB;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Models\Contracts\HasName;
-use NexusPlugin\Permission\Models\Role;
-use NexusPlugin\Permission\Models\UserPermission;
 
-class User extends Authenticatable implements FilamentUser, HasName
+/**
+ * 用户模型（纯 PHP 版，无 Laravel 依赖）。
+ *
+ * 数据以关联数组保存，支持数组式访问（$user['id']）与属性式访问（$user->id）。
+ */
+class User implements \ArrayAccess, \JsonSerializable
 {
-    use HasFactory, Notifiable, HasApiTokens, NexusActivityLogTrait;
+    use UserAttributeAccessTrait;
+
+    public static string $table = 'users';
 
     public $timestamps = false;
 
-    protected $perPage = 50;
+    protected array $attributes = [];
 
-    protected $connection = NexusDB::ELOQUENT_CONNECTION_NAME;
+    protected array $original = [];
+
+    public function __construct(array $attributes = [])
+    {
+        $this->attributes = $this->original = $attributes;
+    }
 
     const STATUS_CONFIRMED = 'confirmed';
     const STATUS_PENDING = 'pending';
@@ -149,17 +144,7 @@ class User extends Authenticatable implements FilamentUser, HasName
 
     public static function exists($id): bool
     {
-        return self::query()->where("id", $id)->exists();
-    }
-
-    public function canAccessPanel(\Filament\Panel $panel): bool
-    {
-        return $this->canAccessAdmin();
-    }
-
-    public function getFilamentName(): string
-    {
-        return $this->username;
+        return \Nexus\Database\NexusDB::table(self::$table)->where('id', $id)->exists();
     }
 
     /**
@@ -173,17 +158,6 @@ class User extends Authenticatable implements FilamentUser, HasName
             return self::DONATE_YES;
         }
         return self::DONATE_NO;
-    }
-
-    /**
-     * 为数组 / JSON 序列化准备日期。
-     *
-     * @param  \DateTimeInterface  $date
-     * @return string
-     */
-    protected function serializeDate(\DateTimeInterface $date): string
-    {
-        return $date->format($this->dateFormat ?: 'Y-m-d H:i:s');
     }
 
     /**
@@ -308,7 +282,7 @@ class User extends Authenticatable implements FilamentUser, HasName
             $log .= ", locale from cookie: $locale";
         }
         if (!$locale) {
-            $lang = $this->language?->site_lang_folder ?? null;
+            $lang = $this['lang'] ?? null;
             $locale = Locale::$languageMaps[$lang] ?? $lang;
             $log .= ", [NO_DATA_FROM_COOKIE], lang from database: $lang, locale: $locale";
         }
@@ -318,37 +292,33 @@ class User extends Authenticatable implements FilamentUser, HasName
 
     public function getSiteLangFolderAttribute()
     {
-        $result = optional($this->language)->site_lang_folder;
-        if ($result && in_array($result, ['en', 'chs', 'cht'])) {
-            return $result;
-        }
-        return 'en';
+        $result = $this['lang'] ?? null;
+        return ($result && in_array($result, ['en', 'chs', 'cht'])) ? $result : 'en';
     }
 
-    protected function uploadedText(): Attribute
+    public function getUploadedTextAttribute()
     {
-        return new Attribute(
-            get: fn($value, $attributes) => mksize($attributes['uploaded'])
-        );
+        return mksize($this['uploaded'] ?? 0);
     }
 
-    protected function downloadedText(): Attribute
+    public function getDownloadedTextAttribute()
     {
-        return new Attribute(
-            get: fn($value, $attributes) => mksize($attributes['downloaded'])
-        );
+        return mksize($this['downloaded'] ?? 0);
     }
 
-    protected function genderText(): Attribute
+    public function getGenderTextAttribute()
     {
-        return new Attribute(
-            get: fn($value, $attributes) => nexus_trans('user.genders.' . $attributes['gender'])
-        );
+        return nexus_trans('user.genders.' . ($this['gender'] ?? ''));
     }
 
     protected function getTwoFactorAuthenticationStatusAttribute(): string
     {
         return $this->two_step_secret != "" ? "yes" : "no";
+    }
+
+    public static function getAccessAdminClassMin(): int
+    {
+        return intval(\App\Models\Setting::get('authority.staffmem', self::CLASS_MODERATOR));
     }
 
     public static function getMinSeedPoints($class)
@@ -360,309 +330,20 @@ class User extends Authenticatable implements FilamentUser, HasName
         return self::$classes[$class]['min_seed_points'] ?? false;
     }
 
-    public function scopeNormal(Builder $query): Builder
-    {
-        return $query->where('status', self::STATUS_CONFIRMED)->where('enabled', self::ENABLED_YES);
-    }
-
-    public function scopeDonating(Builder $query): Builder
-    {
-        return $query->where('donor', 'yes')->where(function (Builder $query) {
-            return $query->whereNull('donoruntil')
-                ->orWhere('donoruntil', '0000-00-00 00:00:00')
-                ->orWhere('donoruntil', '>=', now());
-        });
-    }
-
-    public function exams()
-    {
-        return $this->hasMany(ExamUser::class, 'uid');
-    }
-
-    public function language()
-    {
-        return $this->belongsTo(Language::class, 'lang');
-    }
-
-    public function invitee_code()
-    {
-        return $this->hasOne(Invite::class, 'invitee_register_uid');
-    }
-
-    public function inviter()
-    {
-        return $this->belongsTo(User::class, 'invited_by');
-    }
-
-    public function temporary_invites()
-    {
-        return $this->hasMany(Invite::class, 'inviter')
-            ->where('invitee', '')
-            ->whereNotNull('expired_at')
-            ->where('expired_at', '>=', Carbon::now())
-        ;
-    }
-
-    public function send_messages()
-    {
-        return $this->hasMany(Message::class, 'sender');
-    }
-
-    public function receive_messages()
-    {
-        return $this->hasMany(Message::class, 'receiver');
-    }
-
-    /**
-     * torrent comments
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function comments()
-    {
-        return $this->hasMany(Comment::class, 'user');
-    }
-
-    /**
-     * forum posts
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function posts()
-    {
-        return $this->hasMany(Post::class, 'userid');
-    }
-
-    public function torrents()
-    {
-        return $this->hasMany(Torrent::class, 'owner');
-    }
-
-    public function bookmarks(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Bookmark::class, 'userid');
-    }
-
-
-    public function peers_torrents()
-    {
-        return $this->hasManyThrough(
-            Torrent::class,
-            Peer::class,
-            'userid',
-            'id',
-            'id',
-            'torrent');
-    }
-
-    public function snatched_torrents()
-    {
-        return $this->hasManyThrough(
-            Torrent::class,
-            Snatch::class,
-            'userid',
-            'id',
-            'id',
-            'torrentid');
-    }
-
-    public function seeding_torrents()
-    {
-        return $this->peers_torrents()->where('peers.seeder', Peer::SEEDER_YES);
-    }
-
-    public function leeching_torrents()
-    {
-        return $this->peers_torrents()->where('peers.seeder', Peer::SEEDER_NO);
-    }
-
-    public function completed_torrents()
-    {
-        return $this->snatched_torrents()->where('snatched.finished', Snatch::FINISHED_YES);
-    }
-
-    public function incomplete_torrents()
-    {
-        return $this->snatched_torrents()->where('snatched.finished', Snatch::FINISHED_NO);
-    }
-
-
-    public function hitAndRuns(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(HitAndRun::class, 'uid');
-    }
-
-    public function medals(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(Medal::class, 'user_medals', 'uid', 'medal_id')
-            ->withPivot(['id', 'expire_at', 'status', 'priority', 'bonus_addition_expire_at'])
-            ->withTimestamps()
-            ->orderByPivot('priority', 'desc')
-            ;
-    }
-
-    public function valid_medals(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->medals()->where(function ($query) {
-            $query->whereNull('user_medals.expire_at')->orWhere('user_medals.expire_at', '>=', Carbon::now());
-        });
-    }
-
-    public function wearing_medals(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->valid_medals()->where('user_medals.status', UserMedal::STATUS_WEARING);
-    }
-
-    public function reward_torrent_logs(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Reward::class, 'userid');
-    }
-
-    public function thank_torrent_logs(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Thank::class, 'userid');
-    }
-
-    public function poll_answers(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(PollAnswer::class, 'userid');
-    }
-
-    public function metas()
-    {
-        return $this->hasMany(UserMeta::class, 'uid');
-    }
-
-    public function usernameChangeLogs()
-    {
-        return $this->hasMany(UsernameChangeLog::class, 'uid');
-    }
-
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, 'user_roles', 'uid', 'role_id')->withTimestamps();
-    }
-
-    public function directPermissions()
-    {
-        return $this->hasMany(UserPermission::class, 'uid');
-    }
-
-    public function examAndTasks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(Exam::class, "exam_users", "uid", "exam_id");
-    }
-
-    public function onGoingExamAndTasks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->examAndTasks()->wherePivot("status", ExamUser::STATUS_NORMAL);
-    }
-
-    public function modifyLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(UserModifyLog::class, "user_id");
-    }
-
-    public function claims(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Claim::class, 'uid');
-    }
-
-    public function getAvatarAttribute($value)
-    {
-        if ($value) {
-            if (substr($value, 0, 4) == 'http') {
-                return $value;
-            } else {
-                do_log("user: {$this->id} avatar: $value is not valid url.");
-            }
-        }
-
-        return getSchemeAndHttpHost() . '/pic/default_avatar.png';
-
-    }
-
-    public function updateWithModComment(array $update, $modComment): bool
-    {
-        return $this->updateWithComment($update, $modComment, 'modcomment');
-    }
-
-    public function updateWithComment(array $update, $comment, $commentField): bool
-    {
-        if (!$this->exists) {
-            throw new \RuntimeException('This method only works when user exists !');
-        }
-        //@todo how to do prepare bindings here ?
-//        $comment = addslashes($comment);
-//        do_log("update: " . json_encode($update) . ", $commentField: $comment", 'notice');
-//        $update[$commentField] = NexusDB::raw("if($commentField = '', '$comment', concat_ws('\n', '$comment', $commentField))");
-
-        if ($commentField != "modcomment") {
-            throw new \RuntimeException("unsupported commentField: $commentField !");
-        }
-        return NexusDB::transaction(function () use ($update, $comment) {
-            $this->modifyLogs()->create(['content' => $comment]);
-            return $this->update($update);
-        });
-    }
-
-    public function canAccessAdmin(): bool
-    {
-        $targetClass = self::getAccessAdminClassMin();
-        if (!$this->class || $this->class < $targetClass) {
-            do_log(sprintf('user: %s, no class or class < %s, can not access admin.', $this->id, $targetClass));
-            return false;
-        }
-        return true;
-    }
-
-    public static function getAccessAdminClassMin()
-    {
-        return Setting::get("system.access_admin_class_min") ?: User::CLASS_ADMINISTRATOR;
-    }
-
     public function isDonating(): bool
     {
-        $rawDonorUntil = $this->getRawOriginal('donoruntil');
-        if (
-            $this->donor == 'yes'
-            && ($rawDonorUntil === null || $rawDonorUntil == '0000-00-00 00:00:00' || $this->donoruntil->gte(Carbon::now()))
-        ) {
+        if (($this['donor'] ?? '') !== self::DONATE_YES) {
+            return false;
+        }
+        $until = $this['donoruntil'] ?? null;
+        if (empty($until) || $until === '0000-00-00 00:00:00') {
             return true;
         }
-        return false;
+        return strtotime($until) >= time();
     }
 
-    public function acceptNotification($name): bool
+    public function getIsDonatingAttribute(): bool
     {
-        return is_null($this->original['notifs']) || str_contains($this->notifs, "[{$name}]");
+        return $this->isDonating();
     }
-
-    public function tokenCan(string $ability): bool
-    {
-        $redis = NexusDB::redis();
-        $cacheKey = Setting::USER_TOKEN_PERMISSION_ALLOWED_CACHE_KRY;
-        if (!$redis->exists($cacheKey)) {
-            $lockKey = "$cacheKey:lock";
-            if ($redis->set($lockKey, 1, ['nx', 'ex' => 5])) {
-                try {
-                    if (!$redis->exists($cacheKey)) {
-                        $abilities = TokenRepository::listUserTokenPermissions(false);
-                        do_log("load user token permissions: " . json_encode($abilities), 'alert');
-                        if (!empty($abilities)) {
-                            $redis->sadd($cacheKey, ...$abilities);
-                        } else {
-                            $redis->sadd($cacheKey, "__NO_USER_TOKEN_PERMISSION__");
-                            $redis->expire($cacheKey, 900);
-                        }
-                    }
-                } catch (\Throwable $throwable) {
-                    do_log($throwable->getMessage(), 'error');
-                } finally {
-                    $redis->del($lockKey);
-                }
-            }
-        }
-        return $redis->sismember($cacheKey, $ability)
-            && $this->accessToken && $this->accessToken->can($ability);
-    }
-
 }

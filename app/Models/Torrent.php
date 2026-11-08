@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Repositories\TagRepository;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Support\Carbon;
 
-class Torrent extends NexusModel
+class Torrent extends ModelTable
 {
+    public static string $table = 'torrents';
+
     protected $fillable = [
         'name', 'filename', 'save_as', 'small_descr',
         'category', 'source', 'medium', 'codec', 'standard', 'processing', 'team', 'audiocodec',
@@ -83,13 +84,13 @@ class Torrent extends NexusModel
 
     public static array $promotionTypes = [
         self::PROMOTION_NORMAL => [
-            'text' => 'Normal',
+            'text' => '普通',
             'up_multiplier' => 1,
             'down_multiplier' => 1,
             'color' => ''
         ],
         self::PROMOTION_FREE => [
-            'text' => 'Free',
+            'text' => '免费',
             'up_multiplier' => 1,
             'down_multiplier' => 0,
             'color' => 'linear-gradient(to right, rgba(0,52,206,0.5), rgba(0,52,206,1), rgba(0,52,206,0.5))'
@@ -101,7 +102,7 @@ class Torrent extends NexusModel
             'color' => 'linear-gradient(to right, rgba(0,153,0,0.5), rgba(0,153,0,1), rgba(0,153,0,0.5))'
         ],
         self::PROMOTION_FREE_TWO_TIMES_UP => [
-            'text' => '2X Free',
+            'text' => '2X免费',
             'up_multiplier' => 2,
             'down_multiplier' => 0,
             'color' => 'linear-gradient(to right, rgba(0,153,0,1), rgba(0,52,206,1)'
@@ -394,15 +395,7 @@ class Torrent extends NexusModel
         return $this->basic_category->search_box->getTaxonomyLabel($field);
     }
 
-    public function bookmarks(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Bookmark::class, 'torrentid');
-    }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'owner')->withDefault(User::getDefaultUserAttributes());
-    }
 
     public function thanks()
     {
@@ -414,25 +407,7 @@ class Torrent extends NexusModel
         return $this->belongsToMany(User::class, 'thanks', 'torrentid', 'userid');
     }
 
-    /**
-     * 同伴
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function peers()
-    {
-        return $this->hasMany(Peer::class, 'torrent');
-    }
 
-    /**
-     * 完成情况
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function snatches()
-    {
-        return $this->hasMany(Snatch::class, 'torrentid');
-    }
 
     public function upload_peers()
     {
@@ -494,10 +469,6 @@ class Torrent extends NexusModel
         return $this->belongsTo(AudioCodec::class, 'audiocodec');
     }
 
-    public function claim_users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'claims', 'torrent_id');
-    }
 
     public function claims()
     {
@@ -514,29 +485,8 @@ class Torrent extends NexusModel
         $query->where('visible', self::VISIBLE_YES)->where('banned', self::BANNED_NO);
     }
 
-    public function torrent_tags(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(TorrentTag::class, 'torrent_id');
-    }
 
-    public function tags(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(Tag::class, 'torrent_tags', 'torrent_id', 'tag_id')
-            ->orderByRaw(sprintf("field(`tags`.`id`,%s)", TagRepository::getOrderByFieldIdString()));
-    }
 
-    public function reward_logs(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Reward::class, 'torrentid');
-    }
 
-    public function operationLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(TorrentOperationLog::class, 'torrent_id');
-    }
 
-    public function extra(): \Illuminate\Database\Eloquent\Relations\HasOne
-    {
-        return $this->hasOne(TorrentExtra::class, 'torrent_id');
-    }
 }

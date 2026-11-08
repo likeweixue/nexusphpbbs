@@ -7,7 +7,7 @@ use App\Models\TrackerUrl;
 use App\Models\User;
 use App\Repositories\SearchBoxRepository;
 use App\Repositories\UserRepository;
-use Illuminate\Support\Str;
+use Nexus\Support\Str;
 use Nexus\Database\NexusDB;
 
 class Install
@@ -657,20 +657,114 @@ class Install
         return true;
     }
 
+    /**
+     * 无 vendor 版本：不再调用 artisan migrate，改为执行内置 SQL 建表脚本。
+     *
+     * @param null $path 保留参数以兼容旧调用；传入 SQL 文件路径时只执行该文件
+     */
     public function runMigrate($path = null)
     {
-        if (!WITH_LARAVEL) {
-            throw new \RuntimeException('Laravel is not available.');
-        }
-        $command = escapeshellarg($this->phpBinary()) . " " . escapeshellarg(ROOT_PATH . "artisan") . " migrate";
+        $files = [];
         if (!is_null($path)) {
-            foreach ((array)$path as $key => $value) {
-                $command .= " --path=" . escapeshellarg($value);
+            foreach ((array)$path as $value) {
+                $full = is_file($value) ? $value : ROOT_PATH . $value;
+                if (is_file($full)) {
+                    $files[] = $full;
+                }
             }
         }
-        $command .= " --force";
-        $this->executeCommand($command);
+        if (empty($files)) {
+            $files = [
+                ROOT_PATH . 'database/install/schema.sql',
+                ROOT_PATH . 'database/install/data.sql',
+            ];
+        }
+        foreach ($files as $file) {
+            if (!is_file($file)) {
+                throw new \RuntimeException("install sql not found: $file");
+            }
+            $this->doLog("[MIGRATE] run sql file: $file");
+            $this->executeSqlFile($file);
+        }
         $this->doLog("[MIGRATE] success.");
+    }
+
+    /**
+     * 逐条执行 SQL 文件（支持多语句、注释与 SET 语句）
+     */
+    public function executeSqlFile(string $file): int
+    {
+        $content = file_get_contents($file);
+        if ($content === false) {
+            throw new \RuntimeException("can not read sql file: $file");
+        }
+        $statements = $this->splitSqlStatements($content);
+        $count = 0;
+        foreach ($statements as $statement) {
+            $statement = trim($statement);
+            if ($statement === '') {
+                continue;
+            }
+            try {
+                sql_query($statement);
+            } catch (\Throwable $throwable) {
+                throw new \RuntimeException(sprintf('sql failed: %s, error: %s', substr($statement, 0, 200), $throwable->getMessage()));
+            }
+            $count++;
+        }
+        $this->doLog("[MIGRATE] executed $count statements from $file");
+        return $count;
+    }
+
+    /**
+     * 把 SQL 文件拆成单条语句（正确处理引号、反引号、注释和分号）
+     */
+    public function splitSqlStatements(string $sql): array
+    {
+        $statements = [];
+        $current = '';
+        $length = strlen($sql);
+        $quote = null;
+        for ($i = 0; $i < $length; $i++) {
+            $char = $sql[$i];
+            if ($quote !== null) {
+                $current .= $char;
+                if ($char === '\\' && $i + 1 < $length) {
+                    $current .= $sql[++$i];
+                    continue;
+                }
+                if ($char === $quote) {
+                    $quote = null;
+                }
+                continue;
+            }
+            if ($char === "'" || $char === '"' || $char === '`') {
+                $quote = $char;
+                $current .= $char;
+                continue;
+            }
+            if ($char === '-' && substr($sql, $i, 3) === '-- ' ) {
+                while ($i < $length && $sql[$i] !== "\n") {
+                    $i++;
+                }
+                continue;
+            }
+            if ($char === '/' && substr($sql, $i, 2) === '/*') {
+                $end = strpos($sql, '*/', $i + 2);
+                $i = $end === false ? $length : $end + 1;
+                continue;
+            }
+            if ($char === ';') {
+                $statements[] = $current;
+                $current = '';
+                continue;
+            }
+            $current .= $char;
+        }
+        if (trim($current) !== '') {
+            $statements[] = $current;
+        }
+        return $statements;
     }
 
     /**
@@ -717,17 +811,11 @@ class Install
 
     public function runDatabaseSeeder()
     {
-        if (!WITH_LARAVEL) {
-            throw new \RuntimeException('Laravel is not available.');
-        }
-        $command = escapeshellarg($this->phpBinary()) . " " . escapeshellarg(ROOT_PATH . "artisan") . " db:seed --force";
-        $result = exec($command, $output, $result_code);
-        $this->doLog(sprintf('command: %s, result_code: %s, result: %s', $command, $result_code, $result));
-        $this->doLog("output: " . json_encode($output));
-        if ($result_code != 0) {
-            throw new \RuntimeException(json_encode($output));
-        } else {
-            $this->doLog("[DATABASE_SEED] success.");
+        // 无 vendor 版本：初始数据已随 database/install/data.sql 一起导入，这里只做校验
+        $count = get_row_count('settings');
+        $this->doLog("[DATABASE_SEED] settings rows: $count");
+        if ($count <= 0) {
+            throw new \RuntimeException('database seed data missing, please import database/install/data.sql');
         }
     }
 

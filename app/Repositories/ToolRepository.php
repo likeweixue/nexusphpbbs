@@ -1,7 +1,7 @@
 <?php
 namespace App\Repositories;
 
-use App\Http\Middleware\Locale;
+use App\Support\Locale;
 use App\Models\Invite;
 use App\Models\Message;
 use App\Models\News;
@@ -9,12 +9,9 @@ use App\Models\Poll;
 use App\Models\PollAnswer;
 use App\Models\Setting;
 use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Support\Carbon;
+use Nexus\Database\Arr;
+use Nexus\Support\Str;
 use Nexus\Database\NexusDB;
 use Nexus\Plugin\Plugin;
 use NexusPlugin\Permission\PermissionRepository;
@@ -90,8 +87,7 @@ class ToolRepository extends BaseRepository
 
     public function backupDatabase($transfer = false): array
     {
-        $connectionName = config('database.default');
-        $config = config("database.connections.$connectionName");
+        $config = nexus_config('nexus.mysql');
         $filename = sprintf('%s/%s.database.%s.sql', $this->getBackupExportPath(), basename(base_path()), date('Ymd.His'));
         if (command_exists("mariadb-dump")) {
             $command = sprintf(
@@ -153,8 +149,8 @@ class ToolRepository extends BaseRepository
             $result_code = 0;
             do_log("No tar command, use zip.");
         }
-        File::delete($backupWeb['filename']);
-        File::delete($backupDatabase['filename']);
+        @unlink($backupWeb['filename']);
+        @unlink($backupDatabase['filename']);
         if (!$transfer) {
             return compact('result_code', 'filename');
         }
@@ -222,121 +218,10 @@ class ToolRepository extends BaseRepository
         return $backupResult;
     }
 
-    public function transfer($filename, $result_code, $setting = null): array
-    {
-        if ($result_code != 0) {
-            throw new \RuntimeException("file: $filename backup fail!");
-        }
-        $result = compact('filename', 'result_code');
-        if (empty($setting)) {
-            $setting = Setting::get('backup');
-        }
-        $saveResult = $this->saveToGoogleDrive($setting, $filename);
-        do_log("[BACKUP_GOOGLE_DRIVE]: $saveResult");
-        $result['google_drive'] = $saveResult;
 
-        $saveResult = $this->saveToFtp($setting, $filename);
-        do_log("[BACKUP_FTP]: $saveResult");
-        $result['ftp'] = $saveResult;
 
-        $saveResult = $this->saveToSftp($setting, $filename);
-        do_log("[BACKUP_SFTP]: $saveResult");
-        $result['sftp'] = $saveResult;
-        return $result;
-    }
 
-    private function saveToGoogleDrive(array $setting, $filename): bool|string
-    {
-        $clientId = $setting['google_drive_client_id'] ?? '';
-        $clientSecret = $setting['google_drive_client_secret'] ?? '';
-        $refreshToken = $setting['google_drive_refresh_token'] ?? '';
-        $folderId = $setting['google_drive_folder_id'] ?? '';
 
-        if (empty($clientId)) {
-            do_log("No google_drive_client_id, won't do upload.");
-            return false;
-        }
-        if (empty($clientSecret)) {
-            do_log("No google_drive_client_secret, won't do upload.");
-            return false;
-        }
-        if (empty($refreshToken)) {
-            do_log("No google_drive_refresh_token, won't do upload.");
-            return false;
-        }
-        do_log("Google drive info: clientId: $clientId, clientSecret: $clientSecret, refreshToken: $refreshToken, folderId: $folderId");
-
-        $client = new \Google\Client();
-        $client->setClientId($clientId);
-        $client->setClientSecret($clientSecret);
-        $client->refreshToken($refreshToken);
-        $service = new \Google\Service\Drive($client);
-        $adapter = new \Masbug\Flysystem\GoogleDriveAdapter($service, $folderId);
-        $filesystem = new \League\Flysystem\Filesystem($adapter);
-        $disk = new \Illuminate\Filesystem\FilesystemAdapter($filesystem, $adapter);
-        return $this->doTransfer($disk, $filename);
-    }
-
-    private function saveToFtp(array $setting, $filename): bool|string
-    {
-        if ($setting['via_ftp'] !== 'yes') {
-            do_log("via_ftp !== 'yes', via_ftp: " . $setting['via_ftp'] ?? '');
-            return false;
-        }
-        $config = config('filesystems.disks.ftp');
-        if (empty($config)) {
-            do_log("No ftp config.");
-            return false;
-        }
-        foreach (['host', 'username', 'password', 'root'] as $item) {
-            if (empty($config[$item])) {
-                do_log("No ftp $item.");
-                return false;
-            }
-        }
-        $disk = Storage::disk('ftp');
-        return $this->doTransfer($disk, $filename);
-
-    }
-
-    public function saveToSftp(array $setting, $filename): bool|string
-    {
-        if ($setting['via_sftp'] !== 'yes') {
-            do_log("via_sftp !== 'yes', via_sftp: " . $setting['via_sftp'] ?? '');
-            return false;
-        }
-        $config = config('filesystems.disks.sftp');
-        if (empty($config)) {
-            do_log("No sftp config.");
-            return false;
-        }
-        foreach (['host', 'username', 'password', 'root'] as $item) {
-            if (empty($config[$item])) {
-                do_log("No sftp $item.");
-                return false;
-            }
-        }
-        $disk = Storage::disk('sftp');
-        return $this->doTransfer($disk, $filename);
-    }
-
-    private function doTransfer(\Illuminate\Filesystem\FilesystemAdapter $remoteFilesystem, $filename): bool|string
-    {
-        $localAdapter = new \League\Flysystem\Local\LocalFilesystemAdapter('/');
-        $localFilesystem = new \League\Flysystem\Filesystem($localAdapter);
-        $start = Carbon::now();
-        try {
-            $remoteFilesystem->writeStream(basename($filename), $localFilesystem->readStream($filename));
-            $speed = !(float)abs($start->diffInSeconds()) ? 0 :filesize($filename) / (float)abs($start->diffInSeconds());
-            $log =  'Elapsed time: '.$start->diffForHumans(null, true);
-            $log .= ', Speed: '. number_format($speed/1024,2) . ' KB/s';
-            do_log($log);
-            return true;
-        } catch (\Throwable $exception) {
-            do_log("Transfer error: " . $exception->getMessage(), 'error');
-            return $exception->getMessage();
-        }
-    }
 
     private function cleanupBackupFiles($basename): void
     {
@@ -361,7 +246,7 @@ class ToolRepository extends BaseRepository
         ));
         foreach ($filesToDelete as $file) {
             $realPath = $file->getRealPath();
-            File::delete($realPath);
+            @unlink($realPath);
             do_log(sprintf("delete backup file: %s", $realPath));
         }
     }

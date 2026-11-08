@@ -1,10 +1,8 @@
 <?php
 namespace Nexus;
 
-use App\Http\Middleware\Locale;
-use Illuminate\Container\Container;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Arr;
+use App\Support\Locale;
+use Nexus\Database\Arr;
 use Nexus\Translation\NexusTranslator;
 
 final class Nexus
@@ -139,13 +137,8 @@ final class Nexus
 
     private function retrieveFromServer(array $fields, bool $includeHeader = false)
     {
-        if ($this->runningInOctane()) {
-            $servers = request()->server();
-            $headers = request()->header();
-        } else {
-            $servers = $_SERVER;
-            $headers = getallheaders();
-        }
+        $servers = $_SERVER;
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
         foreach ($fields as $field) {
             $result = $servers[$field] ?? null;
             if ($result !== null && $result !== '') {
@@ -364,7 +357,7 @@ final class Nexus
     {
         if (!$locale) {
             $lang = get_langfolder_cookie();
-            $locale = \App\Http\Middleware\Locale::$languageMaps[$lang] ?? 'en';
+            $locale = \App\Support\Locale::$languageMaps[$lang] ?? 'en';
         }
         $getKey = self::getTranslationGetKey($key, $locale);
         $result = arr_get(self::$translations, $getKey);
@@ -409,15 +402,10 @@ final class Nexus
      * booted we use the configured Laravel queue (sync by default), otherwise
      * the job is executed in-process.
      */
-    public static function dispatchQueueJob(ShouldQueue $job): void
+    public static function dispatchQueueJob($job): void
     {
         try {
-            $container = Container::getInstance();
-            if ($container && $container->bound('queue')) {
-                $container->make('queue')->connection()->push($job);
-            } else {
-                $job->handle();
-            }
+            $job->handle();
             do_log("dispatchQueueJob: " . get_class($job));
         } catch (\Throwable $throwable) {
             do_log("dispatchQueueJob " . get_class($job) . " failed: " . $throwable->getMessage() . "\n" . $throwable->getTraceAsString(), 'error');

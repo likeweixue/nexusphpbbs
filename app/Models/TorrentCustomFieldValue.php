@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Nexus\Database\NexusDB;
 
-class TorrentCustomFieldValue extends NexusModel
+class TorrentCustomFieldValue extends ModelTable
 {
-    protected $table = 'torrents_custom_field_values';
+    public static string $table = 'torrents_custom_field_values';
 
     protected $fillable = [
         'torrent_id', 'custom_field_id', 'custom_field_value',

@@ -1120,12 +1120,20 @@ $columnPermission = nexus_trans('token.permission');
 $columnCreatedAt = nexus_trans('label.created_at');
 $actionCreate = nexus_trans('label.create');
 $actionLabel = nexus_trans('label.action');
-$res = $userInfo->tokens()->orderBy("id", "desc")->get();
-if ($res->count() > 0)
+$res = \Nexus\Database\NexusDB::select(
+    "select * from personal_access_tokens where tokenable_id = " . sqlesc($CURUSER['id'])
+    . " and tokenable_type = " . sqlesc('App\\Models\\User') . " order by id desc"
+);
+if (count($res) > 0)
 {
     $token .= "<table border='1' cellspacing='0' cellpadding='5' id='token-table'><tr><td class='colhead'>ID</td><td class='colhead'>{$columnName}</td><td class='colhead'>{$columnPermission}</td><td class='colhead'>{$columnCreatedAt}</td><td class='colhead'>{$actionLabel}</td></tr>";
-    foreach ($res as $tokenRecord)
+    foreach ($res as $tokenRow)
     {
+        $tokenRecord = new \App\Support\RowObject($tokenRow);
+        if (!isset($tokenRecord->abilitiesText)) {
+            $abilities = json_decode((string)($tokenRow['abilities'] ?? ''), true);
+            $tokenRecord->abilitiesText = is_array($abilities) ? implode(', ', $abilities) : (string)($tokenRow['abilities'] ?? '');
+        }
         $token .= "<tr>";
         $token .= sprintf('<td>%s</td>', $tokenRecord->id);
         $token .= sprintf('<td>%s</td>', $tokenRecord->name);

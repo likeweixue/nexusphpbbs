@@ -5,8 +5,10 @@ namespace App\Models;
 use App\Models\Traits\NexusActivityLogTrait;
 use App\Repositories\ExamRepository;
 
-class ExamUser extends NexusModel
+class ExamUser extends ModelTable
 {
+    public static string $table = 'exam_users';
+
     protected $fillable = ['exam_id', 'uid', 'status', 'progress', 'begin', 'end', 'is_done'];
 
     public $timestamps = true;
@@ -111,20 +113,8 @@ class ExamUser extends NexusModel
     }
 
 
-    public function exam(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(Exam::class, 'exam_id');
-    }
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(User::class, 'uid');
-    }
 
-    public function progresses(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(ExamProgress::class, 'exam_user_id');
-    }
 
 
 }

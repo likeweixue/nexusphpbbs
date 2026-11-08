@@ -3,11 +3,11 @@
 namespace App\Models;
 
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Cache;
 
-class Peer extends NexusModel
+class Peer extends ModelTable
 {
+    public static string $table = 'peers';
+
     protected $fillable = [
         'torrent', 'peer_id', 'ip', 'port', 'uploaded', 'downloaded', 'to_go', 'seeder', 'started', 'last_action',
         'prev_action', 'connectable', 'userid', 'agent', 'finishedat', 'downloadoffset', 'uploadedoffset', 'passkey',

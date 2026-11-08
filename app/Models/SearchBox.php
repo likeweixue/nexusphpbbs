@@ -3,23 +3,20 @@
 namespace App\Models;
 
 use App\Auth\Permission;
-use App\Http\Middleware\Locale;
+use App\Support\Locale;
 use App\Models\Traits\NexusActivityLogTrait;
 use App\Repositories\TagRepository;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Str;
+use Nexus\Support\Str;
 use Nexus\Database\NexusDB;
 
-class SearchBox extends NexusModel
+class SearchBox extends ModelTable
 {
-    use NexusActivityLogTrait;
 
     private static array $instances = [];
 
     private static array $modeOptions = [];
 
-    protected $table = 'searchbox';
+    public static string $table = 'searchbox';
 
     protected $fillable = [
         'name', 'catsperrow', 'catpadding', 'showsubcat', 'section_name', 'is_default',
@@ -154,7 +151,7 @@ class SearchBox extends NexusModel
         return self::$instances[$id];
     }
 
-    public static function listTaxonomyItems($searchBox, $torrentField): \Illuminate\Support\Collection
+    public static function listTaxonomyItems($searchBox, $torrentField): \Nexus\Database\QueryCollection
     {
         if (!$searchBox instanceof self) {
             $searchBox = self::get(intval($searchBox));
@@ -254,45 +251,13 @@ class SearchBox extends NexusModel
     }
 
 
-    public function categories(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Category::class, 'mode');
-    }
 
-    public function taxonomy_source(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Source::class, 'mode');
-    }
 
-    public function taxonomy_medium(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Media::class, 'mode');
-    }
 
-    public function taxonomy_standard(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Standard::class, 'mode');
-    }
 
-    public function taxonomy_codec(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Codec::class, 'mode');
-    }
 
-    public function taxonomy_audiocodec(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(AudioCodec::class, 'mode');
-    }
 
-    public function taxonomy_team(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Team::class, 'mode');
-    }
 
-    public function taxonomy_processing(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Processing::class, 'mode');
-    }
 
     public function loadSubCategories(): void
     {
@@ -312,10 +277,6 @@ class SearchBox extends NexusModel
         }
     }
 
-    public function tags(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Tag::class, 'mode');
-    }
 
     public function loadTags(): void
     {

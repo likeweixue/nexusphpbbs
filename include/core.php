@@ -2,7 +2,7 @@
 ini_set('error_reporting', E_ALL);
 ini_set('display_errors', 0);
 require_once __DIR__ . '/constants.php';
-require_once $rootpath . 'vendor/autoload.php';
+require_once $rootpath . 'nexus/autoload.php';
 $USERUPDATESET = array();
 $query_name=array();
 \Nexus\Nexus::boot();
@@ -19,7 +19,6 @@ if (is_fpm_mode()) {
 }
 require $rootpath . 'nexus/Database/helpers.php';
 require $rootpath . 'classes/class_cache_file.php';
-require $rootpath . 'include/eloquent.php';
 ini_set('date.timezone', nexus_config('nexus.timezone'));
 $Cache = new class_cache_file(); //Load the caching class
 $Cache->setLanguageFolderArray(get_langfolder_list());

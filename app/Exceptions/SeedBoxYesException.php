@@ -4,17 +4,13 @@ namespace App\Exceptions;
 
 class SeedBoxYesException extends NexusException
 {
-    private int $id;
-
-    public function __construct($id)
+    public function __construct(private $id = null)
     {
-        parent::__construct();
-        $this->id = $id;
+        parent::__construct('SeedBox record exists' . ($id ? ": $id" : ''));
     }
 
-    public function getId(): int
+    public function getId()
     {
         return $this->id;
     }
 }
-

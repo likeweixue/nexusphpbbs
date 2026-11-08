@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Icon extends NexusModel
+class Icon extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'caticons';
+    public static string $table = 'caticons';
 
     protected $fillable = ['name', 'folder', 'cssfile', 'multilang', 'secondicon', 'designer', 'comment'];
 }

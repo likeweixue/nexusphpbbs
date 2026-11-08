@@ -2,27 +2,12 @@
 
 namespace Nexus\Database;
 
-use App\Models\OauthClient;
-use App\Models\PersonalAccessToken;
-use Illuminate\Container\Container;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Capsule\Manager as Capsule;
-use Illuminate\Database\Query\Expression;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Laravel\Passport\Passport;
-use Laravel\Sanctum\Sanctum;
 
 class NexusDB
 {
     private $driver;
 
     private static $instance;
-
-    /**
-     * @var \Illuminate\Database\Connection
-     */
-    private static $eloquentConnection;
 
     private $isConnected = false;
 
@@ -56,7 +41,7 @@ class NexusDB
             return self::$instance;
         }
         $instance = new self;
-        $driver = new DBMysqli();
+        $driver = self::makeDriver();
         $instance->setDriver($driver);
         return self::$instance = $instance;
     }
@@ -158,9 +143,6 @@ class NexusDB
         if (empty($table) || empty($data) || !is_array($data)) {
             throw new DatabaseException("require table and data(array).");
         }
-        if (!IN_NEXUS) {
-            return DB::table($table)->insertGetId($data);
-        }
         $fields = array_map(function ($value) {return "`$value`";}, array_keys($data));
         $values = array_map(function ($value) {return sqlesc($value);}, array_values($data));
         $sql = sprintf("insert into `%s` (%s) values (%s)", $table, implode(', ', $fields), implode(', ', $values));
@@ -170,9 +152,6 @@ class NexusDB
 
     public static function update($table, $data, $whereStr)
     {
-        if (!IN_NEXUS) {
-            return DB::table($table)->whereRaw($whereStr)->update($data);
-        }
         $updateArr = [];
         foreach ($data as $field => $value) {
             $updateArr[] = "`$field` = " . sqlesc($value);
@@ -184,13 +163,6 @@ class NexusDB
 
     public static function delete($table, $whereStr, $limit = null)
     {
-        if (!IN_NEXUS) {
-            $query = DB::table($table)->whereRaw($whereStr);
-            if ($limit !== null) {
-                $query->limit($limit);
-            }
-            return $query->delete();
-        }
         $sql = "delete from $table where $whereStr";
         if (!is_null($limit)) {
             $sql .= " limit $limit";
@@ -201,10 +173,6 @@ class NexusDB
 
     public static function getOne($table, $whereStr, $fields = '*')
     {
-        if (!IN_NEXUS) {
-            $result = DB::table($table)->whereRaw($whereStr)->selectRaw($fields)->first();
-            return $result ? json_decode(json_encode($result), true) : null;
-        }
         if ($fields != '*') {
             if (is_array($fields)) {
                 $fields = implode(', ', $fields);
@@ -221,13 +189,6 @@ class NexusDB
 
     public static function getAll($table, $whereStr, $fields = '*')
     {
-        if (!IN_NEXUS) {
-            $result = DB::table($table)->whereRaw($whereStr)->selectRaw($fields)->get();
-            if ($result->isEmpty()) {
-                return [];
-            }
-            return json_decode(json_encode($result), true);
-        }
         if ($fields != '*') {
             if (is_array($fields)) {
                 $fields = implode(', ', $fields);
@@ -243,10 +204,6 @@ class NexusDB
 
     public static function select(string $sql)
     {
-        if (!IN_NEXUS) {
-            $result = DB::select($sql);
-            return json_decode(json_encode($result), true);
-        }
         $res = sql_query($sql);
         $result = [];
         while ($row = mysql_fetch_assoc($res)) {
@@ -255,124 +212,79 @@ class NexusDB
         return $result;
     }
 
-    public static function bootEloquent(array $config)
+
+
+    public static function table(string $table): QueryBuilder
     {
-        $capsule = new Capsule(Container::getInstance());
-        $connectionName = self::ELOQUENT_CONNECTION_NAME;
-        $capsule->addConnection($config, $connectionName);
-        $capsule->setAsGlobal();
-        $capsule->bootEloquent();
-        $connection = self::$eloquentConnection = $capsule->getConnection($connectionName);
-        $connection->enableQueryLog();
-        self::customModel();
+        return new QueryBuilder($table);
     }
 
-    private static function schema(): \Illuminate\Database\Schema\Builder
+    public static function raw($value): RawExpression
     {
-        if (IN_NEXUS) {
-            return Capsule::schema(self::ELOQUENT_CONNECTION_NAME);
-        }
-        throw new \RuntimeException('can not call this when not in nexus.');
-    }
-
-    public static function hasTable($table): bool
-    {
-        if (IN_NEXUS) {
-            return self::schema()->hasTable($table);
-        }
-        return Schema::hasTable($table);
-    }
-
-    public static function hasColumn($table, $column): bool
-    {
-        if (IN_NEXUS) {
-            return self::schema()->hasColumn($table, $column);
-        }
-        return Schema::hasColumn($table, $column);
-    }
-
-    public static function table($table): \Illuminate\Database\Query\Builder
-    {
-        if (IN_NEXUS) {
-            return Capsule::table($table, null, self::ELOQUENT_CONNECTION_NAME);
-        }
-        return DB::table($table);
-    }
-
-    public static function raw($value): \Illuminate\Database\Query\Expression
-    {
-        if (IN_NEXUS) {
-            return new Expression($value);
-        }
-        return DB::raw($value);
-    }
-
-    public static function statement($value)
-    {
-        if (IN_NEXUS) {
-            return sql_query($value);
-        }
-        return DB::statement($value);
+        return new RawExpression((string)$value);
     }
 
     public static function transaction(\Closure $callback, $attempts = 1)
     {
-        if (IN_NEXUS) {
-            return Capsule::connection(self::ELOQUENT_CONNECTION_NAME)->transaction($callback, $attempts);
+        self::statement('start transaction');
+        try {
+            $result = $callback();
+            self::statement('commit');
+            return $result;
+        } catch (\Throwable $e) {
+            self::statement('rollback');
+            throw $e;
         }
-        return DB::transaction($callback, $attempts);
     }
+
+    public static function hasTable($table): bool
+    {
+        return self::hasTableDb($table);
+    }
+
+    public static function hasColumn($table, $column): bool
+    {
+        return !empty(self::getMysqlColumnInfo($table, $column));
+    }
+
+
+
+    public static function statement($value)
+    {
+        return sql_query($value);
+    }
+
 
     public static function remember($key, $ttl, \Closure $callback)
     {
-        if (IN_NEXUS) {
-            global $Cache;
-            $result = $Cache->get_value($key);
-            if ($result === false) {
-                $result = $callback();
-                do_log("cache miss [$key]", 'debug');
-                $Cache->cache_value($key, $result, $ttl);
-            } else {
-                do_log("cache hit [$key]", 'debug');
-            }
-            return $result;
+        global $Cache;
+        $result = $Cache->get_value($key);
+        if ($result === false) {
+            $result = $callback();
+            do_log("cache miss [$key]", 'debug');
+            $Cache->cache_value($key, $result, $ttl);
         } else {
-            return Cache::remember($key, $ttl, $callback);
+            do_log("cache hit [$key]", 'debug');
         }
+        return $result;
     }
 
     public static function cache_put($key, $value, $ttl = 3600)
     {
-        if (IN_NEXUS) {
-            global $Cache;
-            return $Cache->cache_value($key, $value, $ttl);
-        } else {
-            return Cache::put($key, $value, $ttl);
-        }
+        global $Cache;
+        return $Cache->cache_value($key, $value, $ttl);
     }
 
     public static function cache_get($key)
     {
-        if (IN_NEXUS) {
-            global $Cache;
-            return $Cache->get_value($key);
-        } else {
-            return Cache::get($key);
-        }
+        global $Cache;
+        return $Cache->get_value($key);
     }
 
     public static function cache_del($key)
     {
-        if (IN_NEXUS) {
-            global $Cache;
-            $Cache->delete_value($key, true);
-        } else {
-            Cache::forget($key);
-            $langList = get_langfolder_list();
-            foreach ($langList as $lf) {
-                Cache::forget($lf . '_' . $key);
-            }
-        }
+        global $Cache;
+        $Cache->delete_value($key, true);
     }
 
     public static function cache_del_by_pattern($pattern)
@@ -407,12 +319,24 @@ class NexusDB
         return \Nexus\Cache\FileStore::instance();
     }
 
+
+    public static function hasTableDb(string $table): bool
+    {
+        $config = nexus_config('nexus.mysql');
+        $row = self::select(sprintf(
+            "select count(*) as c from information_schema.tables where table_schema = %s and table_name = %s",
+            sqlesc($config['database']),
+            sqlesc($table)
+        ));
+        return intval($row[0]['c'] ?? 0) > 0;
+    }
+
     public static function getMysqlColumnInfo($table, $column = null)
     {
         static $driver;
         $config = nexus_config('nexus.mysql');
         if (is_null($driver)) {
-            $driver = new DBMysqli();
+            $driver = self::makeDriver();
             $driver->connect($config['host'], $config['username'], $config['password'], 'information_schema', $config['port']);
         }
         $sql = sprintf(
@@ -431,7 +355,14 @@ class NexusDB
             $results[$row['COLUMN_NAME']] = $row;
         }
         return $results;
+    }
 
+    public static function makeDriver(): DBInterface
+    {
+        if (class_exists('mysqli')) {
+            return new DBMysqli();
+        }
+        return new DBPdo();
     }
 
     public static function hasIndex($table, $indexName): bool
@@ -445,15 +376,6 @@ class NexusDB
         return false;
     }
 
-    public static function customModel(): void
-    {
-        if (class_exists(Passport::class)) {
-            Passport::useClientModel(OauthClient::class);
-        }
-        if (class_exists(Sanctum::class)) {
-            Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
-        }
-    }
 
 
 }

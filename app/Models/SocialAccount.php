@@ -6,8 +6,10 @@ use Laravel\Passport\Client;
 use Ramsey\Uuid;
 use function Ramsey\Uuid;
 
-class SocialAccount extends NexusModel
+class SocialAccount extends ModelTable
 {
+    public static string $table = 'social_accounts';
+
     protected $fillable = [
         'user_id', 'provider_id', 'provider_user_id', 'provider_username', 'provider_email',
     ];

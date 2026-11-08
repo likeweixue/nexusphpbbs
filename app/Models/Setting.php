@@ -2,17 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\Traits\NexusActivityLogTrait;
-use Illuminate\Support\Arr;
+use Nexus\Database\Arr;
 use Nexus\Database\NexusDB;
 
-class Setting extends NexusModel
+class Setting
 {
-    use NexusActivityLogTrait;
-
-    protected $fillable = ['name', 'value', 'autoload'];
-
-    public $timestamps = true;
 
     const PERMISSION_NO_CLASS = 100;
 
@@ -54,11 +48,11 @@ class Setting extends NexusModel
      */
     public static function getFromDb($name = null, $default = null): mixed
     {
-        $rows = self::query()->where('autoload', 'yes')->get(['name', 'value']);
+        $rows = NexusDB::select("select name, value from settings where autoload = 'yes'");
         $result = [];
         foreach ($rows as $row) {
             $value = self::normalizeValue($row);
-            Arr::set($result, $row->name, $value);
+            Arr::set($result, $row['name'], $value);
         }
         if (is_null($name)) {
             return $result;
@@ -75,7 +69,7 @@ class Setting extends NexusModel
      */
     public static function getByName($name, $default = null): mixed
     {
-        $result = self::query()->where('name', $name)->first();
+        $result = NexusDB::getOne('settings', 'name = ' . sqlesc($name));
         if ($result) {
             return self::normalizeValue($result);
         }
@@ -85,16 +79,16 @@ class Setting extends NexusModel
     public static function getByWhereRaw($whereRaw): array
     {
         $result = [];
-        $list = self::query()->whereRaw($whereRaw)->get();
+        $list = NexusDB::select("select * from settings where $whereRaw");
         foreach ($list as $value) {
-            Arr::set($result, $value->name, self::normalizeValue($value));
+            Arr::set($result, $value['name'], self::normalizeValue($value));
         }
         return $result;
     }
 
-    public static function normalizeValue(Setting $setting)
+    public static function normalizeValue($setting)
     {
-        $value = $setting->value;
+        $value = is_array($setting) ? ($setting['value'] ?? null) : $setting->value;
         if (!is_null($value)) {
             $arr = json_decode($value, true);
             if (is_array($arr)) {
@@ -283,12 +277,12 @@ class Setting extends NexusModel
 
     public static function getRequireSeedSectionPromotionState(): int
     {
-        return self::get("require_seed_section.promotion_state", Torrent::REQUIRE_SEED_SECTION_DEFAULT_PROMOTION_STATE);
+        return (int)self::get("require_seed_section.promotion_state", 1);
     }
 
     public static function getRequireSeedSectionBonusAdditionFactor(): float
     {
-        return self::get("require_seed_section.bonus_addition_factor", Torrent::REQUIRE_SEED_SECTION_DEFAULT_BONUS_ADDITION_FACTOR);
+        return (float)self::get("require_seed_section.bonus_addition_factor", 1);
     }
 
     public static function getRequireSeedSectionTags(): array
@@ -298,7 +292,7 @@ class Setting extends NexusModel
 
     public static function getRequireSeedSectionTorrentCountMax(): int
     {
-        return self::get("require_seed_section.torrent_count_max", Torrent::REQUIRE_SEED_SECTION_DEFAULT_TORRENT_COUNT_MAX);
+        return (int)self::get("require_seed_section.torrent_count_max", 10);
     }
 
     public static function getBonusMinSize(): int
@@ -312,7 +306,7 @@ class Setting extends NexusModel
         if (!empty($result)) {
             return preg_split('/[,，\s]+/', trim($result));
         }
-        return Torrent::BONUS_REWARD_VALUES;
+        return [10, 20, 50, 100, 200, 500];
     }
 
     public static function getBonusRewardTimesLimit(): int
@@ -337,6 +331,6 @@ class Setting extends NexusModel
 
     public static function getSelfEnableBonus(): int
     {
-        return (int)self::get("bonus.self_enable", BonusLogs::DEFAULT_BONUS_SELF_ENABLE);
+        return (int)self::get("bonus.self_enable", 0);
     }
 }

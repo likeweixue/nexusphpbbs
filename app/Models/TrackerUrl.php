@@ -6,9 +6,10 @@ use App\Models\Traits\NexusActivityLogTrait;
 use Nexus\Cache\FileStore;
 use Nexus\Database\NexusDB;
 
-class TrackerUrl extends NexusModel
+class TrackerUrl extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'tracker_urls';
 
     protected $fillable = ['url', 'enabled', 'is_default', 'priority'];
 

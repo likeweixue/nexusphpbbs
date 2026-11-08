@@ -3,10 +3,8 @@
 namespace App\Models;
 
 
-class Post extends NexusModel
+class Post extends ModelTable
 {
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(User::class, 'userid');
-    }
+    public static string $table = 'posts';
+
 }

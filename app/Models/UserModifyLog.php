@@ -2,15 +2,13 @@
 
 namespace App\Models;
 
-class UserModifyLog extends NexusModel
+class UserModifyLog extends ModelTable
 {
+    public static string $table = 'user_modify_logs';
+
     protected $fillable = ['user_id', 'content', ];
 
     public $timestamps = true;
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(User::class, "user_id");
-    }
 
 }

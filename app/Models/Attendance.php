@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-class Attendance extends NexusModel
+class Attendance extends ModelTable
 {
-    protected $table = 'attendance';
+    public static string $table = 'attendance';
 
     protected $fillable = ['uid', 'added', 'points', 'days', 'total_days'];
 
@@ -24,9 +24,5 @@ class Attendance extends NexusModel
     const MAX_RETROACTIVE_DAYS = 30;
 
 
-    public function logs(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(AttendanceLog::class, 'uid', 'uid');
-    }
 
 }

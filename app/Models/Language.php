@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Nexus\Database\NexusDB;
 
-class Language extends NexusModel
+class Language
 {
     const DEFAULT_ENABLED = ['en', 'chs', 'cht'];
 
@@ -107,12 +107,6 @@ class Language extends NexusModel
         ],
     ];
 
-    protected $table = 'language';
-
-    protected $fillable = [
-        'lang_name', 'site_lang_folder',
-    ];
-
     public static function listAvailable(): array
     {
         $result = [];
@@ -136,11 +130,11 @@ class Language extends NexusModel
     public static function updateTransStatus(): void
     {
         foreach (self::CONFIG as $locale => $info) {
-            self::query()->where('lang_name', $info['lang_name'])->update([
+            NexusDB::update('language', [
                 'site_lang_folder' => $locale,
                 'site_lang' => 1,
                 'trans_state' => $info['trans_state'],
-            ]);
+            ], 'lang_name = ' . sqlesc($info['lang_name']));
         }
         NexusDB::cache_del("site_lang_lang_list");
     }

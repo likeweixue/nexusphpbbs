@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Codec extends NexusModel
+class Codec extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'codecs';
+    public static string $table = 'codecs';
 
     protected $fillable = ['name', 'sort_index', 'mode',];
 

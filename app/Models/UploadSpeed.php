@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class UploadSpeed extends NexusModel
+class UploadSpeed extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'uploadspeed';
+    public static string $table = 'uploadspeed';
 
     protected $fillable = ['name'];
 }

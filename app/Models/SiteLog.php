@@ -3,9 +3,9 @@
 namespace App\Models;
 
 
-class SiteLog extends NexusModel
+class SiteLog extends ModelTable
 {
-    protected $table = 'sitelog';
+    public static string $table = 'sitelog';
 
     protected $fillable = ['added', 'txt', 'security_level', 'uid'];
 

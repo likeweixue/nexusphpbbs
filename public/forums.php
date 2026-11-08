@@ -795,7 +795,7 @@ if ($action == "viewtopic")
 		}
 		print("<td class=\"toolbox\" align=\"right\">");
 
-		do_action('post_toolbox', $arr, $allPosts, ($CURUSER['id'] ?? 0));
+		//[NO_VENDOR] post_toolbox hook disabled
 
 		if (!empty($CURUSER['id'])) {
 			$isStarred = in_array($postid, $bookmarkedPostIds);

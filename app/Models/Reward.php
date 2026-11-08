@@ -3,9 +3,9 @@
 namespace App\Models;
 
 
-class Reward extends NexusModel
+class Reward extends ModelTable
 {
-    protected $table = 'magic';
+    public static string $table = 'magic';
 
     protected $fillable = ['torrentid', 'userid', 'value', ];
 

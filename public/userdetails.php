@@ -23,8 +23,17 @@ $user = mysql_fetch_array($r) or bark($lang_userdetails['std_no_such_user']);
 if ($user["status"] == "pending")
 stderr($lang_userdetails['std_sorry'], $lang_userdetails['std_user_not_confirmed']);
 
-$medalType = 'valid_medals';
-$userInfo = \App\Models\User::query()->with($medalType)->findOrFail($user['id']);
+$userRow = \Nexus\Database\NexusDB::getOne('users', 'id = ' . sqlesc($user['id']));
+$userInfo = new \App\Support\RowObject($userRow ?: []);
+$userInfo->added = new \App\Support\Carbon($userRow['added'] ?? 'now');
+$validMedals = \Nexus\Database\NexusDB::select(
+    'select user_medals.*, medals.name as medal_name, medals.image_large, medals.image_small, medals.description as medal_description'
+    . ' from user_medals left join medals on medals.id = user_medals.medal_id'
+    . ' where user_medals.uid = ' . sqlesc($user['id'])
+    . ' and (user_medals.expire_at is null or user_medals.expire_at > ' . sqlesc(date('Y-m-d H:i:s')) . ')'
+    . ' order by user_medals.priority desc, user_medals.id desc'
+);
+$userInfo->valid_medals = \Nexus\Database\QueryCollection::make(array_map(fn($medal) => new \App\Support\RowObject($medal), $validMedals));
 $userRep = new \App\Repositories\UserRepository();
 
 if ($user['added'] == "0000-00-00 00:00:00" || $user['added'] == null) {
@@ -195,7 +204,7 @@ if (($user["privacy"] != "strong") OR (user_can('prfmanage')) || $CURUSER['id'] 
 	}
 */
     tr_small($lang_userdetails['text_user_id'], $userIdDisplay, 1);
-    $tmpInviteCount = $userInfo->temporary_invites()->count();
+    $tmpInviteCount = intval(get_row_count('invites', "WHERE inviter = " . sqlesc($user['id']) . " AND invitee = '' AND expired_at IS NOT NULL AND expired_at >= " . sqlesc(date('Y-m-d H:i:s'))));
 	if ($CURUSER['id'] == $user['id'] || user_can('viewinvite')){
 	if ($user["invites"] <= 0 && $tmpInviteCount <= 0)
 	tr_small($lang_userdetails['row_invitation'], $lang_userdetails['text_no_invitation'], 1);

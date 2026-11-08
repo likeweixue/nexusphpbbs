@@ -4,11 +4,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class News extends NexusModel
+class News extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'news';
+    public static string $table = 'news';
 
     protected $fillable = [
         'userid', 'added', 'title', 'body', 'notify',
@@ -18,10 +17,6 @@ class News extends NexusModel
         'added' => 'datetime',
     ];
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(User::class, 'userid');
-    }
 
 
 }

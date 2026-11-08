@@ -2,6 +2,39 @@
 
 ## 版本历史
 
+### 0.2.0（2026-11-09）— 零依赖版：不再需要 vendor / Composer / Laravel
+
+- **彻底移除 `vendor/` 依赖**：程序、安装、后台全部改为纯 PHP + MySQL，服务器上只要 PHP 8.1+ 和 MySQL 5.7+，**不需要 Composer、不需要 vendor、不需要 Node.js**。
+- **自写基础设施**（`nexus/`）：
+  - `autoload.php`：轻量 PSR-4 自动加载器，替代 Composer 的 `vendor/autoload.php`；
+  - `Database/QueryBuilder.php` + `QueryCollection.php` + `RawExpression.php`：纯 PHP 查询构建器，替代 Eloquent / Query Builder；
+  - `Database/Arr.php`、`Support/Str.php`、`Support/HtmlString.php`、`Support/CarbonCompat.php`、`Support/helpers.php`：替代 Illuminate 的数组/字符串/日期/`now()`/`config()` 等工具；
+  - `Translation/NexusTranslator.php`：纯 PHP 翻译器，读取 `resources/lang`，支持 `file.key`、`namespace::file.key` 与占位符替换。
+- **模型层**：89 个模型全部改为纯 PHP（`ModelTable` 基类 + `ModelCompat`），去掉 Eloquent 关系、作用域、属性转换；需要关联数据的地方改为显式 SQL。
+- **安装器**：不再调用 `artisan migrate / db:seed`，改为执行内置 SQL 脚本 `database/install/schema.sql`（126 张表）与 `data.sql`（初始数据）；安装后建管理员、写设置由页面直接完成。
+- **删除的目录/文件**：`vendor/`、`artisan`、`bootstrap/`、`routes/`、`database/migrations`、`database/seeders`、`resources/`、`app/{Filament,Http,Livewire,Providers,Auth,Utils,Policies,Events,Listeners,Jobs,Logging,Console}`、`nexus/Cache/FileCacheStore.php`、`include/eloquent.php`、前端构建文件（`package.json`/`webpack.mix.js`/`tailwind.config.js`）、`composer.json`/`composer.lock`。
+- **包体**：从 30MB 降到约 3MB（不再包含框架与前端构建产物）。
+- **在线升级器停用**：`public/install/update` 现在只提示“覆盖文件 + 执行 upgrade.sql + 清缓存”。
+
+#### 不再提供的功能（请提前评估）
+
+| 功能 | 说明 |
+| --- | --- |
+| Filament 管理后台（`/nexusphp`） | 已移除；管理功能改由传统后台（`controlcenter.php` + `admincp/*` + `staffpanel.php`）承担 |
+| REST API / OAuth（Sanctum、Passport） | 依赖 Laravel，已移除 |
+| 插件商店与插件加载 | 依赖 Laravel 与迁移，已移除 |
+| 在线升级 | 改为手动覆盖文件 + SQL |
+
+#### 分支说明
+
+- 0.2.x 发布在 `zero-dependency` 分支；`main` 保持 0.1.7 作为带后台/API 的存档版本。
+- 后续常规功能改动只在 `zero-dependency` 分支维护。
+
+#### 升级说明
+
+- 从 0.1.x 升级：**先备份数据库与文件**，然后覆盖程序文件；0.1.x 的数据库结构可直接使用，无需迁移。
+- 全新安装：上传后访问 `install/`，安装向导会执行 `database/install/schema.sql` 与 `data.sql`。
+
 ### 0.1.7（2026-11-09）— 管理系统改为传统风格 + 只读管理列表
 
 - **入口**：顶部“管理系统”由 Filament 后台（`/nexusphp`）改为传统页面 `controlcenter.php`，与“管理组面板”同一套 `colhead` / `rowfollow` 表格样式，按“用户相关 / 系统相关 / OAuth 授权”分组，一页直达，没有多级菜单。

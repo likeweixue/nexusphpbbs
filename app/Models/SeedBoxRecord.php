@@ -7,12 +7,12 @@ use App\Enums\SeedBoxRecord\IsAllowedEnum;
 use App\Enums\SeedBoxRecord\TypeEnum;
 use App\Models\Traits\NexusActivityLogTrait;
 use App\Repositories\SeedBoxRepository;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Nexus\Database\NexusDB;
 
-class SeedBoxRecord extends NexusModel
+class SeedBoxRecord extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'seed_box_records';
 
     protected $fillable = ['type', 'uid', 'status', 'operator', 'bandwidth', 'ip', 'ip_begin', 'ip_end', 'ip_begin_numeric', 'ip_end_numeric',
         'comment', 'version', 'is_allowed', 'asn'
@@ -122,10 +122,6 @@ class SeedBoxRecord extends NexusModel
         return $key === null ? $result : $keyValues;
     }
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(User::class, 'uid');
-    }
 
 
 }

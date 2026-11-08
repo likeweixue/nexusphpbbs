@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-class AttendanceLog extends NexusModel
+class AttendanceLog extends ModelTable
 {
-    protected $table = 'attendance_logs';
+    public static string $table = 'attendance_logs';
 
     protected $fillable = ['uid', 'points', 'date', 'is_retroactive'];
 

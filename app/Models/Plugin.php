@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Support\Arr;
+use Nexus\Database\Arr;
 
-class Plugin extends NexusModel
+class Plugin extends ModelTable
 {
+    public static string $table = 'plugins';
+
     protected $fillable = ['display_name', 'package_name', 'remote_url', 'installed_version', 'status', 'description', 'status_result'];
 
     public $timestamps = true;

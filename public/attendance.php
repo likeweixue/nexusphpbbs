@@ -18,8 +18,8 @@ $localesMap = [
 $localeJs = $localesMap[$lang] ?? 'en-us';
 \Nexus\Nexus::js("vendor/fullcalendar-5.10.2/locales/{$localeJs}.js", 'footer', true);
 
-$today = \Carbon\Carbon::today();
-$tomorrow = \Carbon\Carbon::tomorrow();
+$today = \App\Support\Carbon::today();
+$tomorrow = \App\Support\Carbon::tomorrow();
 $end = $today->clone()->endOfMonth();
 $start = $today->clone()->subMonth(2);
 
@@ -86,26 +86,26 @@ if ($hasAttendedToday) {
     printf('<p>%s<span style="float:right">%s</span></p>', $headerLeft, $headerRight);
     end_frame();
 
-    $logs = \App\Models\AttendanceLog::query()
-        ->where('uid', $CURUSER['id'])
-        ->where('date', '>=', $start->format('Y-m-d'))
-        ->get()
-        ->keyBy('date');
+    $logRows = \Nexus\Database\NexusDB::select(
+        'select * from attendance_logs where uid = ' . sqlesc($CURUSER['id'])
+        . ' and date >= ' . sqlesc($start->format('Y-m-d'))
+    );
+    $logs = [];
+    foreach ($logRows as $logRow) {
+        $logs[$logRow['date']] = new \App\Support\RowObject($logRow);
+    }
 
-    $interval = new \DateInterval('P1D');
-    $period = new \DatePeriod($start, $interval, $end);
-
-    $interval = \Carbon\CarbonInterval::make($interval);
-    $period = \Carbon\CarbonPeriod::make($period);
+    $period = new \DatePeriod(new \DateTime($start->format('Y-m-d')), new \DateInterval('P1D'), new \DateTime($end->format('Y-m-d')));
     $events = [];
-    foreach ($period as $value) {
+    foreach ($period as $dateValue) {
+        $value = new \App\Support\Carbon($dateValue->format('Y-m-d H:i:s'));
         if ($value->gte($tomorrow)) {
             continue;
         }
         $checkDate = $value->format('Y-m-d');
         $eventBase = ['start' => $checkDate, 'end' => $checkDate];
-        if ($logs->has($checkDate)) {
-            $logValue = $logs->get($checkDate);
+        if (isset($logs[$checkDate])) {
+            $logValue = $logs[$checkDate];
             $events[] = array_merge($eventBase, ['display' => 'background']);
             if ($logValue->points > 0) {
                 $events[] = array_merge($eventBase, ['title' => $logValue->points]);

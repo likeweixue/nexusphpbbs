@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Nexus\Database\NexusDB;
 use Nexus\Torrent\TechnicalInformation;
 
-class TorrentExtra extends NexusModel
+class TorrentExtra extends ModelTable
 {
+    public static string $table = 'torrent_extras';
+
     public $timestamps = true;
 
     protected $fillable = ['torrent_id', 'descr', 'ori_descr', 'media_info', 'nfo', 'pt_gen'];

@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-class UsernameChangeLog extends NexusModel
+class UsernameChangeLog extends ModelTable
 {
+    public static string $table = 'username_change_logs';
+
     protected $fillable = ['uid', 'username_old', 'username_new', 'operator', 'change_type'];
 
     public $timestamps = true;

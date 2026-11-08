@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-class Invite extends NexusModel
+class Invite extends ModelTable
 {
-    protected $table = 'invites';
+    public static string $table = 'invites';
 
     const VALID_YES = 1;
     const VALID_NO = 0;

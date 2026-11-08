@@ -8,11 +8,10 @@ use App\Models\SearchBox;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\UserBanLog;
-use Carbon\Carbon;
+use App\Support\Carbon;
 use Elasticsearch\Endpoints\Search;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
+use Nexus\Database\QueryBuilder;
+use Nexus\Database\Arr;
 use Nexus\Database\NexusDB;
 
 class HitAndRunRepository extends BaseRepository
@@ -330,7 +329,7 @@ class HitAndRunRepository extends BaseRepository
     private function inspectingToReached(HitAndRun $hitAndRun, array $update, string $logPrefix = ''): bool
     {
         $update['status'] = HitAndRun::STATUS_REACHED;
-        $affectedRows = DB::table($hitAndRun->getTable())
+        $affectedRows = NexusDB::table($hitAndRun->getTable())
             ->where('id', $hitAndRun->id)
             ->where('status', HitAndRun::STATUS_INSPECTING)
             ->update($update);
@@ -364,7 +363,7 @@ class HitAndRunRepository extends BaseRepository
             'status' => HitAndRun::STATUS_UNREACHED,
             'comment' => $comment
         ];
-        $affectedRows = DB::table($hitAndRun->getTable())
+        $affectedRows = NexusDB::table($hitAndRun->getTable())
             ->where('id', $hitAndRun->id)
             ->where('status', HitAndRun::STATUS_INSPECTING)
             ->update($update);
@@ -537,7 +536,7 @@ class HitAndRunRepository extends BaseRepository
         return $affected;
     }
 
-    private function getCommentUpdateRaw($comment): \Illuminate\Database\Query\Expression
+    private function getCommentUpdateRaw($comment)
     {
         return NexusDB::raw(sprintf("if (comment = '', '%s', concat('\n', '%s', comment))", $comment, $comment));
     }

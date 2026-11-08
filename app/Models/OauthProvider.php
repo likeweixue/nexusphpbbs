@@ -7,9 +7,10 @@ use Laravel\Passport\Client;
 use Nexus\Database\NexusDB;
 use Ramsey\Uuid;
 
-class OauthProvider extends NexusModel
+class OauthProvider extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'oauth_providers';
 
     protected $fillable = [
         'uuid', 'name', 'client_id', 'client_secret', 'authorization_endpoint_url', 'token_endpoint_url',

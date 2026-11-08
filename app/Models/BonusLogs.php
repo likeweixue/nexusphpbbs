@@ -3,12 +3,12 @@
 namespace App\Models;
 
 
-use Carbon\Carbon;
-use Illuminate\Support\Arr;
+use App\Support\Carbon;
+use Nexus\Database\Arr;
 
-class BonusLogs extends NexusModel
+class BonusLogs extends ModelTable
 {
-    protected $table = 'bonus_logs';
+    public static string $table = 'bonus_logs';
 
     protected $fillable = ['uid', 'business_type', 'old_total_value', 'value', 'new_total_value', 'comment', 'created_at', 'updated_at'];
 

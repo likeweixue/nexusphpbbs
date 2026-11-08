@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class SecondIcon extends NexusModel
+class SecondIcon extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'secondicons';
+    public static string $table = 'secondicons';
 
     protected $fillable = [
         'name', 'class_name', 'image', 'mode',

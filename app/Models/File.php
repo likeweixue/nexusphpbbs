@@ -3,7 +3,7 @@
 namespace App\Models;
 
 
-class File extends NexusModel
+class File extends ModelTable
 {
-    protected $table = 'files';
+    public static string $table = 'files';
 }

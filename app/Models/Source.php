@@ -5,9 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Source extends NexusModel
+class Source extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'sources';
 
     protected $fillable = ['name', 'sort_index', 'mode',];
 

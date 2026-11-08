@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-class TorrentTag extends NexusModel
+class TorrentTag extends ModelTable
 {
+    public static string $table = 'torrent_tags';
+
     public $timestamps = true;
 
     protected $fillable = [

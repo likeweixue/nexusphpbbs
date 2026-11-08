@@ -12,12 +12,10 @@ use App\Models\Torrent;
 use App\Models\User;
 use App\Models\UserBanLog;
 use App\Models\UserModifyLog;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Support\Carbon;
+use Nexus\Database\QueryBuilder;
+use Nexus\Database\Arr;
+use Nexus\Database\QueryCollection;
 use Nexus\Database\NexusDB;
 
 class ExamRepository extends BaseRepository
@@ -236,7 +234,7 @@ class ExamRepository extends BaseRepository
     public function delete($id)
     {
         $exam = Exam::query()->findOrFail($id);
-        DB::transaction(function () use ($exam) {
+        NexusNexusDB::transaction(function () use ($exam) {
             do {
                 $deleted = ExamUser::query()->where('exam_id', $exam->id)->limit(10000)->delete();
             } while ($deleted > 0);
@@ -262,7 +260,7 @@ class ExamRepository extends BaseRepository
      * list valid exams
      *
      * @param null $excludeId
-     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     * @return \Nexus\Database\QueryBuilder[]|\Nexus\Database\QueryCollection
      */
     public function listValid($excludeId = null, $isDiscovered = null, $type = null)
     {
@@ -288,7 +286,7 @@ class ExamRepository extends BaseRepository
      * list user match exams
      *
      * @param $uid
-     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     * @return \Nexus\Database\QueryBuilder[]|\Nexus\Database\QueryCollection
      */
     public function listMatchExam($uid)
     {
@@ -897,7 +895,7 @@ class ExamRepository extends BaseRepository
     public function removeExamUser(int $examUserId)
     {
         $examUser = ExamUser::query()->findOrFail($examUserId);
-        $result = DB::transaction(function () use ($examUser) {
+        $result = NexusNexusDB::transaction(function () use ($examUser) {
             do {
                 $deleted = $examUser->progresses()->limit(10000)->delete();
             } while ($deleted > 0);
@@ -1271,7 +1269,7 @@ class ExamRepository extends BaseRepository
                     'msg' => $msg
                 ];
             }
-            DB::transaction(function () use ($uidToDisable, $messageToSend, $examUserIdArr, $examUserToInsert, $userBanLog, $userModifyLogs, $userBonusUpdate, $bonusLog, $uidToUpdateBonus, $userTable, $logPrefix) {
+            NexusNexusDB::transaction(function () use ($uidToDisable, $messageToSend, $examUserIdArr, $examUserToInsert, $userBanLog, $userModifyLogs, $userBonusUpdate, $bonusLog, $uidToUpdateBonus, $userTable, $logPrefix) {
                 ExamUser::query()->whereIn('id', $examUserIdArr)->update(['status' => ExamUser::STATUS_FINISHED]);
                 do {
                     $deleted = ExamProgress::query()->whereIn('exam_user_id', $examUserIdArr)->limit(10000)->delete();

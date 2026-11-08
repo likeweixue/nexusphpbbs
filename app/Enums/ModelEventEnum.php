@@ -2,26 +2,6 @@
 
 namespace App\Enums;
 
-use App\Events\AgentAllowCreated;
-use App\Events\AgentAllowDeleted;
-use App\Events\AgentAllowUpdated;
-use App\Events\AgentDenyCreated;
-use App\Events\AgentDenyDeleted;
-use App\Events\AgentDenyUpdated;
-use App\Events\HitAndRunCreated;
-use App\Events\HitAndRunDeleted;
-use App\Events\HitAndRunUpdated;
-use App\Events\MessageCreated;
-use App\Events\NewsCreated;
-use App\Events\SnatchedUpdated;
-use App\Events\TorrentCreated;
-use App\Events\TorrentDeleted;
-use App\Events\TorrentUpdated;
-use App\Events\UserCreated;
-use App\Events\UserDeleted;
-use App\Events\UserDisabled;
-use App\Events\UserEnabled;
-use App\Events\UserUpdated;
 use App\Models\AgentAllow;
 use App\Models\AgentDeny;
 use App\Models\HitAndRun;
@@ -60,32 +40,32 @@ final class ModelEventEnum {
     const MESSAGE_CREATED = 'message_created';
 
     public static array $eventMaps = [
-        self::TORRENT_CREATED => ['event' => TorrentCreated::class, 'model' => Torrent::class],
-        self::TORRENT_UPDATED => ['event' => TorrentUpdated::class, 'model' => Torrent::class],
-        self::TORRENT_DELETED => ['event' => TorrentDeleted::class, 'model' => Torrent::class],
+        self::TORRENT_CREATED => ['model' => Torrent::class],
+        self::TORRENT_UPDATED => ['model' => Torrent::class],
+        self::TORRENT_DELETED => ['model' => Torrent::class],
 
-        self::USER_CREATED => ['event' => UserCreated::class, 'model' => User::class],
-        self::USER_UPDATED => ['event' => UserUpdated::class, 'model' => User::class],
-        self::USER_DELETED => ['event' => UserDeleted::class, 'model' => User::class],
-        self::USER_ENABLED => ['event' => UserEnabled::class, 'model' => User::class],
-        self::USER_DISABLED => ['event' => UserDisabled::class, 'model' => User::class],
+        self::USER_CREATED => ['model' => User::class],
+        self::USER_UPDATED => ['model' => User::class],
+        self::USER_DELETED => ['model' => User::class],
+        self::USER_ENABLED => ['model' => User::class],
+        self::USER_DISABLED => ['model' => User::class],
 
-        self::NEWS_CREATED => ['event' => NewsCreated::class, 'model' => News::class],
+        self::NEWS_CREATED => ['model' => News::class],
 
-        self::SNATCHED_UPDATED => ['event' => SnatchedUpdated::class, 'model' => Snatch::class],
+        self::SNATCHED_UPDATED => ['model' => Snatch::class],
 
-        self::MESSAGE_CREATED => ['event' => MessageCreated::class, 'model' => Message::class],
+        self::MESSAGE_CREATED => ['model' => Message::class],
 
-        self::HIT_AND_RUN_CREATED => ['event' => HitAndRunCreated::class, 'model' => HitAndRun::class],
-        self::HIT_AND_RUN_UPDATED => ['event' => HitAndRunUpdated::class, 'model' => HitAndRun::class],
-        self::HIT_AND_RUN_DELETED => ['event' => HitAndRunDeleted::class, 'model' => HitAndRun::class],
+        self::HIT_AND_RUN_CREATED => ['model' => HitAndRun::class],
+        self::HIT_AND_RUN_UPDATED => ['model' => HitAndRun::class],
+        self::HIT_AND_RUN_DELETED => ['model' => HitAndRun::class],
 
-        self::AGENT_ALLOW_CREATED => ['event' => AgentAllowCreated::class, 'model' => AgentAllow::class],
-        self::AGENT_ALLOW_UPDATED => ['event' => AgentAllowUpdated::class, 'model' => AgentAllow::class],
-        self::AGENT_ALLOW_DELETED => ['event' => AgentAllowDeleted::class, 'model' => AgentAllow::class],
+        self::AGENT_ALLOW_CREATED => ['model' => AgentAllow::class],
+        self::AGENT_ALLOW_UPDATED => ['model' => AgentAllow::class],
+        self::AGENT_ALLOW_DELETED => ['model' => AgentAllow::class],
 
-        self::AGENT_DENY_CREATED => ['event' => AgentDenyCreated::class, 'model' => AgentDeny::class],
-        self::AGENT_DENY_UPDATED => ['event' => AgentDenyUpdated::class, 'model' => AgentDeny::class],
-        self::AGENT_DENY_DELETED => ['event' => AgentDenyDeleted::class, 'model' => AgentDeny::class],
+        self::AGENT_DENY_CREATED => ['model' => AgentDeny::class],
+        self::AGENT_DENY_UPDATED => ['model' => AgentDeny::class],
+        self::AGENT_DENY_DELETED => ['model' => AgentDeny::class],
     ];
 }

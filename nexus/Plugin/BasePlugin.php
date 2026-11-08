@@ -2,7 +2,6 @@
 namespace Nexus\Plugin;
 
 use App\Repositories\BaseRepository;
-use Illuminate\Support\Facades\Artisan;
 
 abstract class BasePlugin extends BaseRepository
 {
@@ -10,19 +9,14 @@ abstract class BasePlugin extends BaseRepository
 
     abstract function boot();
 
+    /**
+     * 插件迁移（0.2.x 无 vendor 版本不再支持 Laravel 迁移）。
+     *
+     * 插件如需要建表，请直接提供 SQL 并在安装时执行。
+     */
     public function runMigrations($dir, $rollback = false)
     {
-        $command = "migrate";
-        if ($rollback) {
-            $command .= ":rollback";
-        }
-        $command .= " --realpath --force";
-        foreach (glob("$dir/*.php") as $file) {
-            $file = str_replace('\\', '/', $file);
-            $toExecute = "$command --path=$file";
-            do_log("command: $toExecute");
-            Artisan::call($toExecute);
-        }
+        do_log("[PLUGIN] migrations are not supported in the vendor-less edition: $dir", 'warning');
     }
 
     public static function checkMainApplicationVersion($silent = true): bool

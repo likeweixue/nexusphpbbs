@@ -3,8 +3,10 @@
 namespace App\Models;
 
 
-class Request extends NexusModel
+class Request extends ModelTable
 {
+    public static string $table = 'requests';
+
     protected $fillable = ['userid', 'request', 'descr', 'comments', 'hits', 'added'];
 
     protected $casts = [

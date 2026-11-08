@@ -1,13 +1,13 @@
 <?php
 namespace App\Repositories;
 
-use App\Http\Middleware\Locale;
+use App\Support\Locale;
 use App\Models\Avp;
 use App\Models\NexusModel;
 use App\Models\Setting;
 use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Support\Str;
+use App\Support\Carbon;
+use Nexus\Support\Str;
 use Nexus\Cache\FileStore;
 use Nexus\Database\NexusDB;
 

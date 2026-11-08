@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
-use Illuminate\Support\Str;
+use Nexus\Support\Str;
 use Laravel\Passport\Client;
 
 class OauthClient extends Client

@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Media extends NexusModel
+class Media extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'media';
+    public static string $table = 'media';
 
     protected $fillable = ['name', 'sort_index', 'mode',];
 

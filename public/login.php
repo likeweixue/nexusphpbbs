@@ -95,13 +95,10 @@ if ($useChallengeResponseAuthentication) {
 ?>
 </form>
 <?php
-$oauthProviders = \App\Models\OauthProvider::query()
-    ->orderBy("priority", 'desc')
-    ->where('enabled', '=', 1)
-    ->get();
+$oauthProviders = \Nexus\Database\NexusDB::select("select uuid, name from oauth_providers where enabled = 1 order by priority desc");
 $items = [];
 foreach ($oauthProviders as $oauthProvider) {
-    $items[] = sprintf('[<b><a href="oauth/redirect/%s">%s</a></b>]', $oauthProvider->uuid, $oauthProvider->name);
+    $items[] = sprintf('[<b><a href="oauth/redirect/%s">%s</a></b>]', $oauthProvider['uuid'], $oauthProvider['name']);
 }
 if (!empty($items)) {
     echo sprintf("<p>%s: %s</p>", $lang_login['other_methods'], implode("&nbsp;&nbsp;", $items));

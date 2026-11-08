@@ -5,9 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Team extends NexusModel
+class Team extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'teams';
 
     protected $fillable = ['name', 'sort_index', 'mode',];
 

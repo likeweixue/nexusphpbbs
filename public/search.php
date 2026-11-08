@@ -36,20 +36,8 @@ $rows = [];
 if ($search) {
     $search = str_replace(".", " ", $search);
     $searchArr = preg_split("/[\s]+/", $search, 10,PREG_SPLIT_NO_EMPTY);
-    if ($shouldUseMeili) {
-        $searchRep = new \App\Repositories\MeiliSearchRepository();
-        $searchParams = $_GET;
-        if ($approvalStatus != null) {
-            $searchParams['approval_status'] = $approvalStatus;
-        }
-        if ($banned != null) {
-            $searchParams['banned'] = $banned;
-        }
-        //Include dead
-        $searchParams['incldead'] = 0;
-        $searchParams['mode'] = $modeArr;
-        $resultFromSearchRep = $searchRep->search($searchParams, $CURUSER['id']);
-        $count = $resultFromSearchRep['total'];
+    //0.2.0：MeiliSearch 全文搜索已移除，统一走数据库查询
+    if (false) {
     } else {
         $tableTorrent = "torrents";
         $tableUser = "users";
@@ -62,7 +50,7 @@ if ($search) {
         if ($searchArea == \App\Repositories\SearchRepository::SEARCH_AREA_TITLE) {
             foreach ($searchArr as $queryString) {
                 $q = "%{$queryString}%";
-                $torrentQuery->where(function (\Illuminate\Database\Query\Builder $query) use ($q, $tableTorrent) {
+                $torrentQuery->where(function (\Nexus\Database\QueryBuilder $query) use ($q, $tableTorrent) {
                     return $query->where("$tableTorrent.name", 'like', $q)->orWhere("$tableTorrent.small_descr", "like", $q);
                 });
             }

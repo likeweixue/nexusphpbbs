@@ -2,17 +2,15 @@
 
 namespace App\Models\Traits;
 
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
-
+/**
+ * 活动日志占位（无 vendor 版本不再依赖 spatie/laravel-activitylog）。
+ *
+ * 需要记录日志的地方请直接写 activity_log 表。
+ */
 trait NexusActivityLogTrait
 {
-    use LogsActivity;
-    public function getActivitylogOptions(): LogOptions
+    public function getActivitylogOptions()
     {
-        return LogOptions::defaults()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs()
-            ->logAll();
+        return null;
     }
 }

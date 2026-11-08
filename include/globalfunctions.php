@@ -4,14 +4,7 @@ function get_global_sp_state()
 {
 	static $global_promotion_state;
 	if (is_null($global_promotion_state)) {
-        $timeline = \App\Models\TorrentState::resolveTimeline();
-        $current = $timeline['current'] ?? null;
-
-        if (is_array($current) && isset($current['global_sp_state'])) {
-            $global_promotion_state = $current['global_sp_state'];
-        } else {
-            $global_promotion_state = \App\Models\Torrent::PROMOTION_NORMAL;
-        }
+        $global_promotion_state = \App\Models\TorrentStateFixed::currentGlobalState();
 	}
 	return $global_promotion_state;
 }
@@ -194,7 +187,7 @@ function do_log($log, $level = 'info', $echo = false)
         $passkey = $user['passkey'] ?? $_REQUEST['passkey'] ?? $_REQUEST['authkey'] ?? '';
     } else {
         try {
-            $user = \Illuminate\Support\Facades\Auth::user();
+            $user = !empty($GLOBALS['CURUSER']) ? $GLOBALS['CURUSER'] : null;
             $uid = $user->id ?? 0;
             $passkey = $user->passkey ?? request('passkey', request('authkey', ''));
         } catch (\Throwable $exception) {
@@ -548,7 +541,7 @@ function api(...$args)
         $msg = $args[1];
         $data = $args[2];
     }
-    if ($data instanceof \Illuminate\Http\Resources\Json\JsonResource) {
+    if (is_object($data) && method_exists($data, 'resolve')) {
         $data = $data->response()->getData(true);
     }
     do_log("api after prepare data");
@@ -620,29 +613,19 @@ function fail(...$args)
 
 function last_query($all = false, $format = 'json')
 {
-    static $connection;
-    if (is_null($connection)) {
-        if (IN_NEXUS) {
-            $connection = \Illuminate\Database\Capsule\Manager::connection(\Nexus\Database\NexusDB::ELOQUENT_CONNECTION_NAME);
-        } else {
-            $connection = \Illuminate\Support\Facades\DB::connection(config('database.default'));
-        }
-    }
+    global $query_name;
+    $queries = array_map(fn($item) => $item['query'], $query_name ?? []);
     if ($all === 'COUNT') {
-        return count($connection->getQueryLog());
+        return count($queries);
     }
-    $queries = $connection->getRawQueryLog();
     if ($all) {
         return $queries;
     }
     if (empty($queries)) {
         return '';
     }
-    $last = last($queries);
-    if ($format === 'json') {
-        return nexus_json_encode($last);
-    }
-    return $last;
+    $last = end($queries);
+    return $format === 'json' ? nexus_json_encode($last) : $last;
 }
 
 function format_datetime($datetime, $format = 'Y-m-d H:i')
@@ -651,7 +634,7 @@ function format_datetime($datetime, $format = 'Y-m-d H:i')
         return null;
     }
     try {
-        $carbonTime = \Carbon\Carbon::parse($datetime);
+        $carbonTime = \App\Support\Carbon::parse($datetime);
         return $carbonTime->format($format);
     } catch (\Exception) {
         do_log("Invalid datetime: $datetime", 'error');
@@ -775,25 +758,14 @@ function get_user_row($id)
     if (isset($userRows[$id])) return $userRows[$id];
     $cacheKey = 'user_'.$id.'_content';
     $row = \Nexus\Database\NexusDB::remember($cacheKey, 3600, function () use ($id, $neededColumns) {
-        $user = \App\Models\User::query()->with([
-            'wearing_medals' => function ($query) {
-                $query->orderBy('user_medals.priority', 'desc')
-                    ->orderBy('user_medals.id', 'desc')
-                    ->limit(get_setting('system.maximum_number_of_medals_can_be_worn', 3));
-            }
-        ])->find($id, $neededColumns);
+        $user = \Nexus\Database\NexusDB::getOne('users', 'id = ' . sqlesc($id), implode(', ', array_unique($neededColumns)));
         if (!$user) {
             return null;
         }
-        $arr = $user->toArray();
+        $arr = $user;
         //Rainbow ID
-        $userRep = new \App\Repositories\UserRepository();
-        $metas = $userRep->listMetas($id, \App\Models\UserMeta::META_KEY_PERSONALIZED_USERNAME);
-        if ($metas->isNotEmpty()) {
-            $arr['__is_rainbow'] = 1;
-        } else {
-            $arr['__is_rainbow'] = 0;
-        }
+        $rainbow = \Nexus\Database\NexusDB::getOne('user_metas', 'uid = ' . sqlesc($id) . " and meta_key = " . sqlesc(\App\Models\UserMeta::META_KEY_PERSONALIZED_USERNAME));
+        $arr['__is_rainbow'] = $rainbow ? 1 : 0;
         $arr['__is_donor'] = is_donor($arr);
         return apply_filter("user_row", $arr);
     });
@@ -952,7 +924,12 @@ function isIPSeedBoxFromASN($ip, $exceptionWhenYes = false): bool
 
 function isIPSeedBox($ip, $uid): bool
 {
-    return \App\Repositories\SeedBoxRepository::isSeedBoxFromUserRecords($uid, $ip)['result'];
+    $row = \Nexus\Database\NexusDB::getOne(
+        'seed_box_records',
+        'uid = ' . sqlesc($uid) . ' and ip = ' . sqlesc($ip) . ' and status = 1',
+        'id'
+    );
+    return !empty($row);
 
     /*
     $key = "nexus_is_ip_seed_box:ip:$ip:uid:$uid";
@@ -1139,7 +1116,7 @@ function clear_user_cache($uid, $passkey = '')
         \Nexus\Database\NexusDB::cache_del('user_passkey_'.$passkey.'_content');//announce.php
         \Nexus\Database\NexusDB::cache_del('user_passkey_'.$passkey.'_rss');//torrentrss.php
     }
-    $userInfo = \App\Models\User::query()->find($uid, \App\Models\User::$commonFields);
+    $userInfo = \App\Models\User::find($uid, \App\Models\User::$commonFields);
     if ($userInfo) {
         fire_event("user_updated", $userInfo);
     }
@@ -1164,9 +1141,9 @@ function clear_category_cache()
 {
     do_log("clear_category_cache");
     \Nexus\Database\NexusDB::cache_del('category_content');
-    $searchBoxList = \App\Models\SearchBox::query()->get(['id']);
+    $searchBoxList = \Nexus\Database\NexusDB::select('select id from search_box');
     foreach ($searchBoxList as $item) {
-        \Nexus\Database\NexusDB::cache_del("category_list_mode_{$item->id}");
+        \Nexus\Database\NexusDB::cache_del("category_list_mode_{$item['id']}");
     }
 
 }
@@ -1177,9 +1154,9 @@ function clear_category_cache()
 function clear_taxonomy_cache($table)
 {
     do_log("clear_taxonomy_cache: $table");
-    $list = \App\Models\SearchBox::query()->get(['id']);
+    $list = \Nexus\Database\NexusDB::select('select id from search_box');
     foreach ($list as $item) {
-        \Nexus\Database\NexusDB::cache_del("{$table}_list_mode_{$item->id}");
+        \Nexus\Database\NexusDB::cache_del("{$table}_list_mode_{$item['id']}");
     }
     \Nexus\Database\NexusDB::cache_del("{$table}_list_mode_0");
 }
@@ -1211,7 +1188,7 @@ function clear_icon_cache()
 function clear_inbox_count_cache($uid)
 {
     do_log("clear_inbox_count_cache");
-    foreach (\Illuminate\Support\Arr::wrap($uid) as $id) {
+    foreach (\Nexus\Database\Arr::wrap($uid) as $id) {
         \Nexus\Database\NexusDB::cache_del('user_'.$id.'_inbox_count');
         \Nexus\Database\NexusDB::cache_del('user_'.$id.'_unread_message_count');
     }
@@ -1328,9 +1305,9 @@ function get_passkey_by_authkey($authkey)
             throw new \InvalidArgumentException("Invalid authkey: $authkey");
         }
         $userInfo = \Nexus\Database\NexusDB::remember("announce_user_passkey_$uid", 3600, function () use ($uid) {
-            return \App\Models\User::query()->where('id', $uid)->first(['id', 'passkey']);
+            return \App\Models\User::find($uid, ['id', 'passkey']);
         });
-        return $userInfo->passkey;
+        return is_array($userInfo) ? $userInfo['passkey'] : $userInfo->passkey;
     });
 }
 
@@ -1414,55 +1391,25 @@ function get_snatch_info($torrentId, $userId)
 /**
  * 完整的 Laravel 事件, 在 php 端有监听者的需要触发. 同样会执行 publish_model_event()
  */
-function fire_event(string $name, \Illuminate\Database\Eloquent\Model $model, ?\Illuminate\Database\Eloquent\Model $oldModel = null): void
+function fire_event(string $name, $model, $oldModel = null): void
 {
     if (!isset(\App\Enums\ModelEventEnum::$eventMaps[$name])) {
         throw new \InvalidArgumentException("Event $name is not a valid event enumeration");
     }
-    if (IN_NEXUS) {
-        $prefix = "fire_event:";
-        $idKey = $prefix . \Illuminate\Support\Str::random();
-        $idKeyOld = "";
-        \Nexus\Database\NexusDB::cache_put($idKey, serialize($model->toArray()), 3600*24*30);
-        if ($oldModel) {
-            $idKeyOld = $prefix . \Illuminate\Support\Str::random();
-            \Nexus\Database\NexusDB::cache_put($idKeyOld, serialize($oldModel->toArray()), 3600*24*30);
-        }
-//        executeCommand("event:fire --name=$name --idKey=$idKey --idKeyOld=$idKeyOld", "string", true, false);
-        \Nexus\Nexus::dispatchQueueJob(new \App\Jobs\FireEvent($name, $idKey, $idKeyOld));
-        do_log("success fire_event in nexus, name: $name, idKey: $idKey, idKeyOld: $idKeyOld");
-    } else {
-        $eventClass = \App\Enums\ModelEventEnum::$eventMaps[$name]['event'];
-        if (str_ends_with($name, '_deleted')) {
-            //if deleted from database, can not pass model instance, use array
-            $params = [$model->toArray()];
-            if ($oldModel) {
-                $params[] = $oldModel->toArray();
-            }
-        } else {
-            $params = [$model];
-            if ($oldModel) {
-                $params[] = $oldModel;
-            }
-        }
-        call_user_func_array([$eventClass, "dispatch"], $params);
-        publish_model_event($name, $model->id, $model->toJson());
-        do_log("success fire_event in laravel, name: $name, id: $model->id, oldId: " . ($oldModel ? $oldModel->id : ""));
-    }
+    // 无 vendor 版本：不再派发事件对象，只记录日志，便于排查业务动作
+    $id = is_array($model) ? ($model['id'] ?? '') : ($model->id ?? '');
+    do_log("fire_event, name: $name, id: $id");
 }
+
 
 /**
  * 仅仅是往 redis 发布事件, php 端无监听者仅在其他平台有需要的触发这个即可, 较轻量
  */
 function publish_model_event(string $event, int $id, string $json = ""): void
 {
-    $channel = nexus_env("CHANNEL_NAME_MODEL_EVENT");
-    if (!empty($channel)) {
-        \Nexus\Database\NexusDB::redis()->publish($channel, json_encode(["event" => $event, "id" => $id, "json" => $json]));
-    } else {
-        do_log("event: $event, id: $id, channel: $channel, channel is empty!", "error");
-    }
+    do_log("publish_model_event: $event, id: $id", 'debug');
 }
+
 
 function convertNamespaceToSnake(string $str): string
 {
@@ -1476,7 +1423,7 @@ function get_user_locale(int $uid): string
     if (empty($result) || empty($result[0]['site_lang_folder'])) {
         return "en";
     }
-    return \App\Http\Middleware\Locale::$languageMaps[$result[0]['site_lang_folder']] ?? $result[0]['site_lang_folder'];
+    return \App\Support\Locale::$languageMaps[$result[0]['site_lang_folder']] ?? $result[0]['site_lang_folder'];
 }
 
 function send_admin_success_notification(string $msg = ""): void {
@@ -1523,7 +1470,7 @@ function get_user_from_cookie(array $cookie, $isArray = true): array|\App\Models
         $authKey = $row["auth_key"];
         unset($row['auth_key'], $row['passhash']);
     } else {
-        $row = \App\Models\User::query()->find($id);
+        $row = \App\Models\User::find($id);
         if (!$row) {
             do_log("$log, user not exists");
             return null;

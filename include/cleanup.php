@@ -225,7 +225,7 @@ function ban_user_with_leech_warning_expired()
 }
 
 
-function disable_user(\Illuminate\Database\Eloquent\Builder $query, $reasonKey)
+function disable_user(\Nexus\Database\QueryBuilder $query, $reasonKey)
 {
     $results = $query->where('enabled', \App\Models\User::ENABLED_YES)->get(['id', 'username', 'lang']);
     if ($results->isEmpty()) {
@@ -287,7 +287,7 @@ function docleanup($forceAll = 0, $printProgress = false) {
 	set_time_limit(0);
 	ignore_user_abort(1);
 	$now = time();
-    $carbonNow = \Carbon\Carbon::now();
+    $carbonNow = \App\Support\Carbon::now();
 	$nowStr = $carbonNow->toDateTimeString();
 	do_log("start docleanup(), forceAll: $forceAll, printProgress: $printProgress, now: $now, " . date('Y-m-d H:i:s', $now));
 
@@ -451,7 +451,7 @@ function docleanup($forceAll = 0, $printProgress = false) {
             ->where("class","<", $maxclass)
             ->where("last_access","<", $dt)
             ->where("downloaded",0)
-            ->where(function (\Illuminate\Database\Eloquent\Builder $query) use ($iniupload_main) {
+            ->where(function (\Nexus\Database\QueryBuilder $query) use ($iniupload_main) {
                 $query->where('uploaded', 0)->orWhere('uploaded', $iniupload_main);
             });
         disable_user($query, "cleanup.disable_user_no_transfer_alt_last_access_time");
@@ -474,7 +474,7 @@ function docleanup($forceAll = 0, $printProgress = false) {
             ->where("class","<", $maxclass)
             ->where("added","<", $dt)
             ->where("downloaded",0)
-            ->where(function (\Illuminate\Database\Eloquent\Builder $query) use ($iniupload_main) {
+            ->where(function (\Nexus\Database\QueryBuilder $query) use ($iniupload_main) {
                 $query->where('uploaded', 0)->orWhere('uploaded', $iniupload_main);
             });
         disable_user($query, "cleanup.disable_user_no_transfer_alt_register_time");
@@ -534,7 +534,7 @@ function docleanup($forceAll = 0, $printProgress = false) {
             ->where("last_access","<", $dt)
             ->select(['id', 'username', 'lang'])
             ->orderBy("id", "asc")
-            ->chunk(2000, function (\Illuminate\Support\Collection $users) use ($userRep) {
+            ->chunk(2000, function (\Nexus\Database\QueryCollection $users) use ($userRep) {
                 $userRep->destroy($users, 'cleanup.destroy_disabled_account');
             });
     }

@@ -13,8 +13,8 @@ use App\Models\TorrentBuyLog;
 use App\Models\User;
 use App\Models\UserMedal;
 use App\Models\UserMeta;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
+use App\Support\Carbon;
+use Nexus\Database\QueryBuilder;
 use Nexus\Database\ClickHouse;
 use Nexus\Database\NexusDB;
 

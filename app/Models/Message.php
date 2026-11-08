@@ -5,9 +5,9 @@ namespace App\Models;
 use App\Enums\ModelEventEnum;
 use Nexus\Database\NexusDB;
 
-class Message extends NexusModel
+class Message extends ModelTable
 {
-    protected $table = 'messages';
+    public static string $table = 'messages';
 
     protected $fillable = [
         'sender', 'receiver', 'added', 'subject', 'msg', 'unread', 'location', 'saved'

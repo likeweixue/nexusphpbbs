@@ -3,9 +3,9 @@
 namespace App\Models;
 
 
-class Bookmark extends NexusModel
+class Bookmark extends ModelTable
 {
-    protected $table = 'bookmarks';
+    public static string $table = 'bookmarks';
 
     protected $fillable = ['userid', 'torrentid'];
 

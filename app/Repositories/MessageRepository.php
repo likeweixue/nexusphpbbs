@@ -5,7 +5,6 @@ use App\Models\Message;
 use App\Models\Setting;
 use App\Models\StaffMessage;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Nexus\Database\NexusDB;
 
 class MessageRepository extends BaseRepository
@@ -53,9 +52,9 @@ class MessageRepository extends BaseRepository
         return self::buildStaffMessageQuery($uid, $answered)->count();
     }
 
-    public static function buildStaffMessageQuery($uid, $answered = null): \Illuminate\Database\Eloquent\Builder
+    public static function buildStaffMessageQuery($uid, $answered = null): \Nexus\Database\QueryBuilder
     {
-        $query = StaffMessage::query();
+        $query = NexusDB::table('staffmessages');
         if ($answered !== null) {
             $query->where('answered', $answered);
         }

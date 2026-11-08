@@ -3,8 +3,10 @@
 namespace App\Models;
 
 
-class Thank extends NexusModel
+class Thank extends ModelTable
 {
+    public static string $table = 'thanks';
+
     protected $fillable = ['torrentid', 'userid'];
 
     public function user()

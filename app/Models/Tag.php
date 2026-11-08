@@ -4,9 +4,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Tag extends NexusModel
+class Tag extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'tags';
 
     public $timestamps = true;
 
@@ -62,20 +63,8 @@ class Tag extends NexusModel
         ]);
     }
 
-    public function torrents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(Torrent::class, 'torrent_tags', 'tag_id', 'torrent_id');
-    }
 
-    public function torrent_tags(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(TorrentTag::class, 'tag_id');
-    }
 
-    public function search_box(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(SearchBox::class, 'mode', 'id');
-    }
 
 
 

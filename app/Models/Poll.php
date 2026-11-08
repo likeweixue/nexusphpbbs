@@ -5,9 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Poll extends NexusModel
+class Poll extends ModelTable
 {
-    use NexusActivityLogTrait;
+
+    public static string $table = 'polls';
 
     protected $fillable = ['added', 'question', 'option0', 'option1', 'option2', 'option3', 'option4', 'option5'];
 

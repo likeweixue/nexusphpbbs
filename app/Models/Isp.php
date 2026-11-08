@@ -5,11 +5,10 @@ namespace App\Models;
 
 use App\Models\Traits\NexusActivityLogTrait;
 
-class Isp extends NexusModel
+class Isp extends ModelTable
 {
-    use NexusActivityLogTrait;
 
-    protected $table = 'isp';
+    public static string $table = 'isp';
 
     protected $fillable = ['name'];
 }

@@ -6,6 +6,6 @@ require_once $rootpath . 'include/constants.php';
 require_once $rootpath . 'include/globalfunctions.php';
 require_once $rootpath . 'include/functions_announce.php';
 require_once $rootpath . 'include/functions.php';
-require_once $rootpath . 'vendor/autoload.php';
+require_once $rootpath . 'nexus/autoload.php';
 \Nexus\Nexus::boot();
 
