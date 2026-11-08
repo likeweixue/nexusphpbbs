@@ -52,3 +52,26 @@ width:30px;
 height:25px;
 background:url(forum.gif) -138px -50px;
 }
+
+img.f_star_off
+{
+display:inline-block;
+width:35px;
+height:25px;
+max-width:none;
+max-height:none;
+overflow:visible;
+vertical-align:bottom;
+background:url(forum.gif) no-repeat 0 -75px;
+}
+img.f_star_on
+{
+display:inline-block;
+width:35px;
+height:25px;
+max-width:none;
+max-height:none;
+overflow:visible;
+vertical-align:bottom;
+background:url(forum.gif) no-repeat -35px -75px;
+}

@@ -572,6 +572,15 @@ if ($action == "viewtopic")
 	if (!$authorid)
 		$Cache->cache_value('topic_'.$topicid.'_post_count', $postcount, 3600);
 
+	//------ Load bookmarked posts of current user
+	$bookmarkedPostIds = [];
+	if (!empty($CURUSER['id'])) {
+		$resBookmark = sql_query("SELECT postid FROM post_bookmarks WHERE userid = " . sqlesc($CURUSER['id']) . " AND topicid = " . sqlesc($topicid));
+		while ($bookmarkRow = mysql_fetch_assoc($resBookmark)) {
+			$bookmarkedPostIds[] = intval($bookmarkRow['postid']);
+		}
+	}
+
 	//------ Make page menu
 
 	$pagerarr = array();
@@ -802,6 +811,15 @@ if ($action == "viewtopic")
 
 		do_action('post_toolbox', $arr, $allPosts, ($CURUSER['id'] ?? 0));
 
+		if (!empty($CURUSER['id'])) {
+			$isStarred = in_array($postid, $bookmarkedPostIds);
+			if ($isStarred) {
+				print("<a href=\"javascript:;\" style=\"text-decoration:none;\" class=\"post-star\" data-postid=\"" . $postid . "\" data-title-on=\"" . htmlspecialchars($lang_forums['title_star_bookmarked'] ?? '取消收藏') . "\" data-title-off=\"" . htmlspecialchars($lang_forums['title_star_bookmark'] ?? '收藏该贴') . "\" title=\"" . htmlspecialchars($lang_forums['title_star_bookmarked'] ?? '取消收藏') . "\"><img class=\"f_star_on\" src=\"pic/trans.gif\" alt=\"Star\" /></a>");
+			} else {
+				print("<a href=\"javascript:;\" style=\"text-decoration:none;\" class=\"post-star\" data-postid=\"" . $postid . "\" data-title-on=\"" . htmlspecialchars($lang_forums['title_star_bookmarked'] ?? '取消收藏') . "\" data-title-off=\"" . htmlspecialchars($lang_forums['title_star_bookmark'] ?? '收藏该贴') . "\" title=\"" . htmlspecialchars($lang_forums['title_star_bookmark'] ?? '收藏该贴') . "\"><img class=\"f_star_off\" src=\"pic/trans.gif\" alt=\"Star\" /></a>");
+			}
+		}
+
 		if ($maypost && $canViewProtected)
 		print("<a href=\"".htmlspecialchars("?action=quotepost&postid=".$postid)."\"><img class=\"f_quote\" src=\"pic/trans.gif\" alt=\"Quote\" title=\"".$lang_forums['title_reply_with_quote']."\" /></a>");
 
@@ -811,6 +829,45 @@ if ($action == "viewtopic")
 		if ((($CURUSER["id"] ?? 0) == $posterid && !$locked) || user_can('postmanage') || $is_forummod)
 		print("<a href=\"".htmlspecialchars("?action=editpost&postid=".$postid)."\"><img class=\"f_edit\" src=\"pic/trans.gif\" alt=\"Edit\" title=\"".$lang_forums['title_edit_post']."\" /></a>");
 		print("</td></tr></table>");
+	}
+
+	if (!empty($CURUSER['id'])) {
+		$starJs = <<<'STARJS'
+jQuery(function ($) {
+    $('.post-star').on('click', function (e) {
+        e.preventDefault();
+        var $link = $(this);
+        var postid = $link.attr('data-postid');
+        if ($link.attr('data-busy')) {
+            return;
+        }
+        $link.attr('data-busy', '1');
+        $.get('postbookmark.php?postid=' + encodeURIComponent(postid), function (res) {
+            var text = String(res).trim();
+            if (text === 'added') {
+                $link.find('img').removeClass('f_star_off').addClass('f_star_on');
+                $link.attr('title', $link.attr('data-title-on'));
+            } else if (text === 'deleted') {
+                $link.find('img').removeClass('f_star_on').addClass('f_star_off');
+                $link.attr('title', $link.attr('data-title-off'));
+            } else if (window.layer) {
+                layer.msg(text, {icon: 2, time: 1500});
+            } else {
+                alert(text);
+            }
+        }).fail(function () {
+            if (window.layer) {
+                layer.msg('failed', {icon: 2, time: 1500});
+            } else {
+                alert('failed');
+            }
+        }).always(function () {
+            $link.removeAttr('data-busy');
+        });
+    });
+});
+STARJS;
+		\Nexus\Nexus::js($starJs, 'footer', false);
 	}
 
 	//------ Mod options
