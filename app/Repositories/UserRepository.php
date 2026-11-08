@@ -149,7 +149,7 @@ class UserRepository extends BaseRepository
             'auth_key' => mksecret(),
             'editsecret' => '',
             'passhash' => $passhash,
-            'stylesheet' => $setting['defstylesheet'],
+            'stylesheet' => intval($setting['defstylesheet'] ?? 3) ?: 3,
             'added' => \App\Support\Carbon::now()->toDateTimeString(),
             'status' => User::STATUS_CONFIRMED,
             'class' => $class,
