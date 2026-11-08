@@ -175,6 +175,11 @@ $lang_mybonus = array
     'text_karma_note_default' => "歡迎來到魔力值系統。\n\n發帖、回帖等論壇行為都可以獲得魔力值，具體獎勵規則請留意站點公告。\n\n魔力值可以在本頁兌換邀請、勳章、補簽卡、改名卡、貴賓等。",
     'text_edit_karma_note' => '編輯',
 
+    'text_karma_note_bbcode_note' => '支援 BBCode（[b][i][u][url][img][list][*] 等），儲存後顯示在魔力值頁面。',
+    'submit_karma_note_save' => '提交',
+    'submit_karma_note_preview' => '預覽',
+    'submit_karma_note_cancel' => '取消',
+
 );
 
 ?>

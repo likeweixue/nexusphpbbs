@@ -175,6 +175,11 @@ where<ul><li><b>A</b> is an intermediate variable</li><li><b>Ti</b> is the <b>i<
     'text_karma_note_default' => "Welcome to the bonus point system.\n\nPosting and replying on the forum earns you bonus points; check the site announcements for details.\n\nBonus points can be exchanged on this page for invites, medals, attendance cards and more.",
     'text_edit_karma_note' => 'Edit',
 
+    'text_karma_note_bbcode_note' => 'BBCode is supported ([b][i][u][url][img][list][*] ...).',
+    'submit_karma_note_save' => 'Save',
+    'submit_karma_note_preview' => 'Preview',
+    'submit_karma_note_cancel' => 'Cancel',
+
 );
 
 ?>

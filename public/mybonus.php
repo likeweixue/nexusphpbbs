@@ -434,11 +434,11 @@ if ($karmaNoteEditMode) {
     print("<tr><td class=\"colhead\" align=\"center\"><font class=\"big\">".$lang_mybonus['text_what_is_karma']."</font></td></tr>\n");
     print("<tr><td class=\"text\" align=\"center\"><form method=\"post\" action=\"mybonus.php?karmanote_edit=1\">");
     print("<textarea name=\"karmanote_content\" rows=\"18\" style=\"width: 96%; font-family: monospace;\">".htmlspecialchars($karmaNoteContent)."</textarea>");
-    print("<div style=\"margin-top: 6px; color: gray;\">支持 BBCode（[b][i][u][url][img][list][*] 等），保存后显示在魔力值页面。</div>");
+    print("<div style=\"margin-top: 6px; color: gray;\">".($lang_mybonus['text_karma_note_bbcode_note'] ?? '')."</div>");
     print("<table align=\"center\" cellpadding=\"4\"><tr>");
-    print("<td class=\"embedded\"><input type=\"submit\" class=\"btn\" name=\"karmanote_save\" value=\"提交\"></td>");
-    print("<td class=\"embedded\"><input type=\"submit\" class=\"btn2\" name=\"karmanote_preview\" value=\"预览\">");
-    print("<input type=\"button\" class=\"btn2\" value=\"取消\" onclick=\"location.href='mybonus.php';\"></td>");
+    print("<td class=\"embedded\"><input type=\"submit\" class=\"btn\" name=\"karmanote_save\" value=\"".($lang_mybonus['submit_karma_note_save'] ?? '提交')."\"></td>");
+    print("<td class=\"embedded\"><input type=\"submit\" class=\"btn2\" name=\"karmanote_preview\" value=\"".($lang_mybonus['submit_karma_note_preview'] ?? '预览')."\">");
+    print("<input type=\"button\" class=\"btn2\" value=\"".($lang_mybonus['submit_karma_note_cancel'] ?? '取消')."\" onclick=\"location.href='mybonus.php';\"></td>");
     print("</tr></table></form></td></tr>");
     if ($karmaNotePreview !== null) {
         print("<tr><td class=\"text\" align=\"left\">".$karmaNotePreview."</td></tr>");

@@ -175,6 +175,11 @@ $lang_mybonus = array
     'text_karma_note_default' => "欢迎来到魔力值系统。\n\n发帖、回帖等论坛行为都可以获得魔力值，具体奖励规则请留意站点公告。\n\n魔力值可以在本页兑换邀请、勋章、补签卡、改名卡、贵宾等。",
     'text_edit_karma_note' => '编辑',
 
+    'text_karma_note_bbcode_note' => '支持 BBCode（[b][i][u][url][img][list][*] 等），保存后显示在魔力值页面。',
+    'submit_karma_note_save' => '提交',
+    'submit_karma_note_preview' => '预览',
+    'submit_karma_note_cancel' => '取消',
+
 );
 
 ?>
