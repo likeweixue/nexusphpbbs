@@ -4,7 +4,7 @@
 
 基于 [NexusPHP](https://nexusphp.org/) 1.10.2（Laravel 12 + FilamentPHP 5）的论坛版本。
 
-> 当前版本：**0.2.5**（零依赖版：不需要 vendor / Composer / Laravel，只需要 PHP + MySQL）
+> 当前版本：**0.2.6**（零依赖版：不需要 vendor / Composer / Laravel，只需要 PHP + MySQL）
 
 - 已移除种子上传、下载、Tracker 等 PT 功能，保留论坛、用户、消息、勋章、签到、考核、道具、管理后台等模块，页面布局不变。
 - **不需要 Redis**，缓存/会话/限流/锁全部使用本机文件缓存，安装只需要 **PHP + MySQL**。

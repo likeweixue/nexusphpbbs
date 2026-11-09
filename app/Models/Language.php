@@ -122,9 +122,15 @@ class Language
     public static function listEnabled($withoutCache = false)
     {
         if ($withoutCache) {
-            return Setting::getFromDb('main.site_language_enabled', self::DEFAULT_ENABLED);
+            $list = Setting::getFromDb('main.site_language_enabled', self::DEFAULT_ENABLED);
+        } else {
+            $list = Setting::get('main.site_language_enabled', self::DEFAULT_ENABLED);
         }
-        return Setting::get('main.site_language_enabled', self::DEFAULT_ENABLED);
+        //数据库里可能是 NULL 或空字符串，兜底为默认启用语言，避免 in_array(..., null) 崩溃
+        if (!is_array($list) || empty($list)) {
+            return self::DEFAULT_ENABLED;
+        }
+        return $list;
     }
 
     public static function updateTransStatus(): void

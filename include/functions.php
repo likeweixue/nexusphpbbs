@@ -17,16 +17,16 @@ function get_langfolder_cookie($transToLocale = false)
                 "SELECT site_lang_folder FROM language WHERE site_lang = 1 AND id = " . sqlesc($GLOBALS['CURUSER']['lang']) . " LIMIT 1"
             ));
             $enabled = \App\Models\Language::listEnabled();
-            if (!empty($userLang['site_lang_folder']) && in_array($userLang['site_lang_folder'], $enabled)) {
+            if (!empty($userLang['site_lang_folder']) && in_array($userLang['site_lang_folder'], (array)$enabled)) {
                 $lang = $userLang['site_lang_folder'];
             }
 		}
 	} else {
-		$langfolder_array = get_langfolder_list();
+		$langfolder_array = get_langfolder_list() ?: ['en', 'chs', 'cht'];
 		$enabled = \App\Models\Language::listEnabled();
 		foreach($langfolder_array as $lf)
 		{
-			if($lf == $_COOKIE["c_lang_folder"] && in_array($lf, $enabled)) {
+			if($lf == $_COOKIE["c_lang_folder"] && in_array($lf, (array)$enabled)) {
                 $lang = $_COOKIE["c_lang_folder"];
                 break;
             }
@@ -2540,13 +2540,18 @@ function get_css_row() {
 		}
 		$Cache->cache_value('stylesheet_content', $rows, 95400);
 	}
-	return $rows[$cssid] ?? $rows[$defcss];
+	$row = $rows[$cssid] ?? ($rows[$defcss] ?? null);
+	if ($row === null && !empty($rows)) {
+		//主题 id 不在表中（数据不一致/被删主题），回退到第一个
+		$row = reset($rows);
+	}
+	return $row ?: [];
 }
 function get_css_uri($file = "")
 {
     global $defcss;
 	$cssRow = get_css_row();
-	$ss_uri = $cssRow['uri'];
+	$ss_uri = $cssRow['uri'] ?? '';
 	if (!$ss_uri)
 		$ss_uri = get_single_value("stylesheets","uri","WHERE id=".sqlesc($defcss));
 	if ($file == "")
@@ -2569,7 +2574,7 @@ function get_font_css_uri(){
 function get_style_addicode()
 {
 	$cssRow = get_css_row();
-	return $cssRow['addicode'];
+	return $cssRow['addicode'] ?? '';
 }
 
 function get_cat_folder($cat = 101)

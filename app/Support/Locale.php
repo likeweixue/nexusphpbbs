@@ -27,6 +27,9 @@ class Locale
     public static function getDefault()
     {
         $defaultLang = get_setting('main.defaultlang');
+        if (empty($defaultLang)) {
+            $defaultLang = 'en';
+        }
         return self::$languageMaps[$defaultLang] ?? $defaultLang;
     }
 }
