@@ -1,6 +1,6 @@
 <?php
 
-$lang_staffpanel = [
+return [
     'Administration' => '管理組面板',
     'For SysOp Only' => '對系統管理員開放',
     'Option Name' => '選項名稱',

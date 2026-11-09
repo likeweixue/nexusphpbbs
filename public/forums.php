@@ -35,11 +35,13 @@ function get_topic_image($status= "read"){
 	global $lang_forums;
 	switch($status){
 		case "read": {
-			return "<img class=\"unlocked\" src=\"pic/trans.gif\" alt=\"read\" title=\"".$lang_forums['title_read']."\" />";
+			//已读：暗色 forum_old.gif
+			return "<img class=\"topic_read\" src=\"".nexus_asset('pic/forum_pic/common/forum_old.gif')."\" alt=\"read\" title=\"".$lang_forums['title_read']."\" width=\"29\" height=\"30\" />";
 			break;
 			}
 		case "unread": {
-			return "<img class=\"unlockednew\" src=\"pic/trans.gif\" alt=\"unread\" title=\"".$lang_forums['title_unread']."\" />";
+			//未读：黄色高亮 forum_new.gif
+			return "<img class=\"topic_unread\" src=\"".nexus_asset('pic/forum_pic/common/forum_new.gif')."\" alt=\"unread\" title=\"".$lang_forums['title_unread']."\" width=\"29\" height=\"30\" />";
 			break;
 		}
 		case "locked": {

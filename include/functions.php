@@ -2680,7 +2680,6 @@ $cssupdatedate=($cssupdatedate ? "?".htmlspecialchars($cssupdatedate) : "");
 ?>
 <title><?php echo $title?></title>
 <link rel="shortcut icon" href="<?php echo nexus_asset('favicon.ico')?>" type="image/x-icon" />
-<link rel="search" type="application/opensearchdescription+xml" title="<?php echo $SITENAME?> Torrents" href="opensearch.php" />
 <link rel="stylesheet" href="<?php echo nexus_asset(get_font_css_uri()).$cssupdatedate?>" type="text/css" />
 <link rel="stylesheet" href="<?php echo nexus_asset('styles/sprites.css').$cssupdatedate?>" type="text/css" />
 <link rel="stylesheet" href="<?php echo nexus_asset(get_forum_pic_folder().'/forumsprites.css').$cssupdatedate?>" type="text/css" />
@@ -3156,10 +3155,10 @@ function stdfoot() {
 	foreach (\Nexus\Nexus::getAppendFooters() as $value) {
 	    print($value);
     }
-	$js = <<<JS
-<script type="application/javascript" src="<?php echo nexus_asset('js/nexus.js').$cssupdatedate?>"></script>
-<script type="application/javascript" src="<?php echo nexus_asset('js/medium-zoom.min.js').$cssupdatedate?>"></script>
-<script type="application/javascript" src="<?php echo nexus_asset('vendor/jquery-goup-1.1.3/jquery.goup.min.js').$cssupdatedate?>"></script>
+	$js = '<script type="application/javascript" src="' . nexus_asset('js/nexus.js') . $cssupdatedate . '"></script>' . "\n"
+        . '<script type="application/javascript" src="' . nexus_asset('js/medium-zoom.min.js') . $cssupdatedate . '"></script>' . "\n"
+        . '<script type="application/javascript" src="' . nexus_asset('vendor/jquery-goup-1.1.3/jquery.goup.min.js') . $cssupdatedate . '"></script>' . "\n"
+        . <<<JS
 <script>
 jQuery(document).ready(function(){
     jQuery.goup()
@@ -6486,9 +6485,10 @@ function build_search_box_category_table($mode, $checkboxValue, $categoryHrefPre
                 } else {
                     $backgroundImagePath = "pic/category/{$searchBox->name}/$iconFolder/$langAndFile";
                 }
+                $cattransSrc = nexus_asset('pic/cattrans.gif');
                 $tdContent = <<<TDCONTENT
 <input type="checkbox" id="cat{$item->id}" name="cat{$item->id}" value="{$checkboxValue}"{$checked} />
-<a href="{$categoryHrefPrefix}cat={$item->id}"><img src="<?php echo nexus_asset('pic/cattrans.gif" class="{$item->class_name}" alt="{$item->name}" title="{$item->name}" style="background-image: url({$backgroundImagePath})" /></a>
+<a href="{$categoryHrefPrefix}cat={$item->id}"><img src="{$cattransSrc}" class="{$item->class_name}" alt="{$item->name}" title="{$item->name}" style="background-image: url({$backgroundImagePath})" /></a>
 TDCONTENT;
             } else {
                 $tdContent = sprintf(

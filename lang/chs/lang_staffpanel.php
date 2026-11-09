@@ -1,6 +1,6 @@
 <?php
 
-$lang_staffpanel = [
+return [
     'Administration' => '管理组面板',
     'For SysOp Only' => '对系统管理员开放',
     'Option Name' => '选项名称',
@@ -20,7 +20,7 @@ $lang_staffpanel = [
     'Failed Logins' => '失败登录',
     'Show Failed Login Attempts' => '查看失败的登录尝试',
     'Bitbucket' => 'Bitbucket',
-    'Bitbucket Log' => 'Bitbucket Log',
+    'Bitbucket Log' => 'Bitbucket 日志',
     'Ban EMAIL address' => '禁止邮件地址',
     'Ban EMAILs stop registration.' => '禁止邮件地址注册',
     'Allow EMAIL address' => '允许邮件地址',
