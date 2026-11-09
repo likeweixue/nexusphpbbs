@@ -10,6 +10,21 @@ use Nexus\Database\NexusDB;
 
 class AttendanceRepository extends BaseRepository
 {
+    /**
+     * 安全序列化 attendance 对象用于日志（Carbon 字段转字符串）
+     */
+    private function logAttendance($attendance): string
+    {
+        $data = [];
+        foreach ((array)$attendance as $key => $value) {
+            if ($value instanceof Carbon) {
+                $value = $value->toDateTimeString();
+            }
+            $data[$key] = $value;
+        }
+        return json_encode($data, JSON_UNESCAPED_UNICODE);
+    }
+
     public function attend($uid)
     {
         $attendance = $this->getAttendance($uid);
@@ -33,7 +48,7 @@ class AttendanceRepository extends BaseRepository
             $attendance = (object)array_merge($initialData, ['id' => $attendanceId]);
         } else {
             $added = $attendance->added->startOfDay();
-            do_log("[ORIGINAL_DATA]: " . $attendance->toJson());
+            do_log("[ORIGINAL_DATA]: " . $this->logAttendance($attendance));
             if ($added->gte($today)) {
                 //already attended today, do nothing
                 $isUpdated = 0;
@@ -78,7 +93,7 @@ class AttendanceRepository extends BaseRepository
         $myLog = NexusDB::getOne('attendance_logs', 'date = ' . sqlesc($todayStr) . ' and uid = ' . sqlesc($uid), 'id');
         $myId = intval($myLog['id'] ?? 0);
         $attendance->my_ranking = $myId ? intval(get_row_count('attendance_logs', 'WHERE date = ' . sqlesc($todayStr) . ' AND id <= ' . sqlesc($myId))) : 0;
-        do_log("[FINAL_ATTENDANCE]: " . $attendance->toJson());
+        do_log("[FINAL_ATTENDANCE]: " . $this->logAttendance($attendance));
         return $attendance;
 
     }

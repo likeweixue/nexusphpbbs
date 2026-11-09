@@ -2,6 +2,16 @@
 
 ## 版本历史
 
+### 0.2.7（2026-11-09）— 修复签到/语言切换 500、消除 Notice 刷屏
+
+- **修复签到 500**：`AttendanceRepository` 里对 `getAttendance()` 返回的 stdClass 调用 `->toJson()` 导致 `Call to undefined method stdClass::toJson()`。已改为安全序列化（Carbon 字段转字符串）。
+- **修复语言切换 `?sitelanguage=` 500**：`login.php`、`signup.php` 里的 `in_array($lang_folder, $enabled)` 在语言列表为 NULL 时崩溃，统一加 `(array)` 强转。
+- **消除 Notice/Warning 刷屏**：
+  - `config.php` 里 `$AUTHORITY['torrentmanage']` 等 30+ 个键（论坛版精简后缺失）加 `?? ''` 兜底；
+  - `stdfoot()` 里 `$cssupdatedate` 未定义（我之前改页脚脚本引入的 bug），改为从 `$GLOBALS` 读取。
+
+> 说明：之前连续几轮"切换主题/清缓存/签到就 500"，根因都是 `settings` 表里 `main.defaultlang`、`main.site_language_enabled` 为 NULL 触发的语言解析崩溃，0.2.6 已修；本版把签到和语言切换入口这两个同样受影响的调用点补齐。
+
 ### 0.2.6（2026-11-09）— 修复切换/清缓存后 500、删除种子目录
 
 - **修复切换主题或清缓存后全站 500**：`settings` 表中 `main.defaultlang`、`main.site_language_enabled` 若为 NULL（如半途安装、手动改动），清除缓存后语言解析会触发 `in_array(..., null)` 与 `NexusTranslator(null)` 致命错误。已对语言读取、语言列表、翻译器默认语言全部加空值兜底，无论数据库里是正常值还是 NULL 都能正常工作。

@@ -3160,6 +3160,7 @@ function stdfoot() {
 	foreach (\Nexus\Nexus::getAppendFooters() as $value) {
 	    print($value);
     }
+	$cssupdatedate = $GLOBALS['cssupdatedate'] ?? '';
 	$js = '<script type="application/javascript" src="' . nexus_asset('js/nexus.js') . $cssupdatedate . '"></script>' . "\n"
         . '<script type="application/javascript" src="' . nexus_asset('js/medium-zoom.min.js') . $cssupdatedate . '"></script>' . "\n"
         . '<script type="application/javascript" src="' . nexus_asset('vendor/jquery-goup-1.1.3/jquery.goup.min.js') . $cssupdatedate . '"></script>' . "\n"

@@ -7,7 +7,7 @@ if ($langid)
 {
 	$lang_folder = validlang($langid);
     $enabled = \App\Models\Language::listEnabled();
-    if (!in_array($lang_folder, $enabled)) {
+    if (!in_array($lang_folder, (array)$enabled)) {
         nexus_redirect(getBaseUrl());
     }
 	if(get_langfolder_cookie() != $lang_folder)
