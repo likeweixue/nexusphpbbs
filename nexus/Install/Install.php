@@ -297,10 +297,7 @@ class Install
         require $originalConfigFile;
         $settings = require $defaultSettingsFile;
         $settingsFromDb = [];
-        if (NexusDB::hasTable('settings') && Setting::query()->count() > 0) {
-            if (!NexusDB::hasColumn('settings', 'autoload')) {
-                $this->runMigrate('database/migrations/2022_05_06_191830_add_autoload_to_settings_table.php');
-            }
+        if (NexusDB::hasTable('settings') && get_row_count('settings') > 0) {
             $settingsFromDb = Setting::getFromDb();
         }
         $this->doLog("settings form db: " . json_encode($settingsFromDb));
@@ -809,14 +806,31 @@ class Install
 //        }
     }
 
+    /**
+     * 导入初始数据。
+     *
+     * 0.2.x 不再使用 Laravel seeder：初始数据由 database/install/data.sql 提供。
+     * 若第 3 步已由 schema.sql 建表而第 4 步才执行到这里，则在此导入 data.sql；
+     * 若数据已经存在（schema.sql 一并导入过），则跳过。
+     */
     public function runDatabaseSeeder()
     {
-        // 无 vendor 版本：初始数据已随 database/install/data.sql 一起导入，这里只做校验
+        if (get_row_count('settings') > 0) {
+            $this->doLog("[DATABASE_SEED] settings already exists, skip: " . get_row_count('settings'));
+            return true;
+        }
+        $dataFile = ROOT_PATH . 'database/install/data.sql';
+        if (!is_file($dataFile)) {
+            throw new \RuntimeException('database seed file missing: ' . $dataFile);
+        }
+        $this->doLog("[DATABASE_SEED] import: $dataFile");
+        $this->executeSqlFile($dataFile);
         $count = get_row_count('settings');
         $this->doLog("[DATABASE_SEED] settings rows: $count");
         if ($count <= 0) {
             throw new \RuntimeException('database seed data missing, please import database/install/data.sql');
         }
+        return true;
     }
 
     public function listTimeZone()
@@ -842,6 +856,21 @@ class Install
         $fullFilename = ROOT_PATH . $this->lockFile;
         if (file_exists($fullFilename)) {
             die("Locked! Delete .lock file first");
+        }
+    }
+
+    /**
+     * 是否已完成安装（存在管理员账号）
+     */
+    public function isInstalled(): bool
+    {
+        try {
+            if (!NexusDB::hasTable('users') || !NexusDB::hasTable('settings')) {
+                return false;
+            }
+            return get_row_count('users') > 0;
+        } catch (\Throwable $throwable) {
+            return false;
         }
     }
 
@@ -887,7 +916,7 @@ class Install
         if (!str_starts_with($announceUrl, "http")) {
             $announceUrl = (isHttps() ? "https://" : "http://"). $announceUrl;
         }
-        TrackerUrl::query()->create([
+        NexusDB::table('tracker_urls')->create([
             "url" => $announceUrl,
             "enabled" => 1,
             "is_default" => 1,

@@ -35,22 +35,18 @@ class TrackerUrl extends ModelTable
 
     public static function saveUrlCache(): void
     {
-        //添加 id 与 URL 映射
-        $redis = NexusDB::redis();
-        $redis->unlink(self::TRACKER_URL_CACHE_KEY);
+        //0.2.x：不再使用 redis，缓存写入文件缓存
         $list = self::listAll();
-        $first = $list->first();
-        $hasDefault = false;
+        $map = [];
+        $defaultUrl = '';
         foreach ($list as $item) {
-            $redis->hset(self::TRACKER_URL_CACHE_KEY, $item->id, $item->url);
-            if ($item->is_default == 1) {
-                $hasDefault = true;
-                $redis->set(self::TRACKER_URL_DEFAULT_CACHE_KEY, $item->url);
+            $map[$item->id] = $item->url;
+            if (empty($defaultUrl) || ($item->is_default ?? 0) == 1) {
+                $defaultUrl = $item->url;
             }
         }
-        if (!$hasDefault && $first) {
-            $redis->set(self::TRACKER_URL_DEFAULT_CACHE_KEY, $first->url);
-        }
+        NexusDB::cache_put(self::TRACKER_URL_CACHE_KEY, $map, 86400);
+        NexusDB::cache_put(self::TRACKER_URL_DEFAULT_CACHE_KEY, $defaultUrl, 86400);
     }
 
     public static function listAll()

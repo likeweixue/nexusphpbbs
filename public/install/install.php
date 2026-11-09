@@ -8,6 +8,10 @@ $install = new \Nexus\Install\Install();
 $currentStep = $install->currentStep();
 $maxStep = $install->maxStep();
 if (!$install->canAccessStep($currentStep)) {
+    // 已建表且有管理员时不允许重跑安装，避免把站点"跳过"到完成状态
+    if ($install->isInstalled()) {
+        die('NexusPHP already installed. Delete <code>.env</code> and <code>' . \Nexus\Install\Install::INSTALL_LOCK_FILE . '</code> then reinstall.');
+    }
     $install->gotoStep(1);
 }
 $error = $copy = '';

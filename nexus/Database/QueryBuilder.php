@@ -281,6 +281,16 @@ class QueryBuilder
         return $this->select($columns)->where('id', $id)->first();
     }
 
+    /**
+     * 兼容 Eloquent 的 create()：插入一行并返回行对象
+     */
+    public function create(array $attributes)
+    {
+        $id = \Nexus\Database\NexusDB::insert($this->table, $attributes);
+        $attributes['id'] = $id;
+        return new \App\Support\RowObject($attributes);
+    }
+
     public function findOrFail($id, $columns = ['*'])
     {
         $row = $this->find($id, $columns);
